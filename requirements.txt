@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+python-dotenv
+
+feedparser
+beautifulsoup4
+lxml
+
+sentence-transformers
+faiss-cpu
+numpy
+
+pydantic
+pydantic-settings
