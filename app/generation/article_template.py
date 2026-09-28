@@ -1,0 +1,1017 @@
+from html import escape
+from datetime import datetime
+
+
+def build_article_html(
+    query: str,
+    article: dict,
+    sources: list
+) -> str:
+
+    title = escape(
+        article.get("title", "TrustNews Generated Article")
+    )
+
+    introduction = escape(
+        article.get("introduction", "")
+    )
+
+    conclusion = escape(
+        article.get("conclusion", "")
+    )
+
+    # --------------------------------
+    # ARTICLE SECTIONS
+    # --------------------------------
+
+    sections_html = ""
+
+    for section in article.get("sections", []):
+
+        heading = escape(
+            section.get("heading", "")
+        )
+
+        content = escape(
+            section.get("content", "")
+        )
+
+        sections_html += f"""
+        <section class="article-section">
+
+            <div class="section-heading">
+                <span class="section-line"></span>
+                <h2>{heading}</h2>
+            </div>
+
+            <p>{content}</p>
+
+        </section>
+        """
+
+    # --------------------------------
+    # KEY POINTS
+    # --------------------------------
+
+    key_points_html = ""
+
+    for point in article.get("key_points", []):
+
+        key_points_html += f"""
+        <li>
+            <span class="point-icon">✓</span>
+            <span>{escape(point)}</span>
+        </li>
+        """
+
+    # --------------------------------
+    # SOURCES
+    # --------------------------------
+
+    sources_html = ""
+
+    for index, source in enumerate(sources, start=1):
+
+        source_title = escape(
+            source.get("title", "")
+        )
+
+        source_name = escape(
+            source.get("source", "")
+        )
+
+        source_url = escape(
+            source.get("url", "")
+        )
+
+        score = source.get("score")
+
+        score_text = ""
+
+        if isinstance(score, (int, float)):
+            score_text = f"{score:.4f}"
+
+        similarity_html = ""
+
+        if score_text:
+            similarity_html = f"""
+            <span class="similarity-badge">
+                Similarity {score_text}
+            </span>
+            """
+
+        sources_html += f"""
+        <li class="source-item">
+
+            <div class="source-number">
+                {index}
+            </div>
+
+            <div class="source-details">
+
+                <div class="source-top">
+
+                    <span class="source-name">
+                        {source_name}
+                    </span>
+
+                    {similarity_html}
+
+                </div>
+
+                <a
+                    href="{source_url}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {source_title}
+                </a>
+
+                <a
+                    class="source-link"
+                    href="{source_url}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Read original source →
+                </a>
+
+            </div>
+
+        </li>
+        """
+
+    # --------------------------------
+    # META
+    # --------------------------------
+
+    generated_at = datetime.now().strftime(
+        "%d %B %Y, %H:%M"
+    )
+
+    source_count = len(sources)
+
+    safe_query = escape(query)
+
+    # --------------------------------
+    # HTML
+    # --------------------------------
+
+    html = f"""
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>{title} | TrustNews</title>
+
+    <style>
+
+        * {{
+            box-sizing: border-box;
+        }}
+
+        html {{
+            scroll-behavior: smooth;
+        }}
+
+        body {{
+            margin: 0;
+
+            background: #f4f6f8;
+
+            color: #1f2937;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            line-height: 1.75;
+        }}
+
+
+        /* ================================
+           PAGE
+        ================================= */
+
+        .container {{
+            max-width: 1000px;
+
+            margin: 0 auto;
+
+            padding: 45px 24px 70px;
+        }}
+
+
+        /* ================================
+           BRAND
+        ================================= */
+
+        .brand-row {{
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            margin-bottom: 22px;
+        }}
+
+        .brand {{
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            color: #111827;
+
+            font-size: 13px;
+
+            font-weight: 800;
+
+            letter-spacing: 2px;
+        }}
+
+        .brand-mark {{
+            width: 34px;
+
+            height: 34px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border-radius: 9px;
+
+            background: #111827;
+
+            color: #ffffff;
+
+            font-size: 10px;
+
+            letter-spacing: 0;
+        }}
+
+        .article-label {{
+            padding: 7px 11px;
+
+            border: 1px solid #e5e7eb;
+
+            border-radius: 20px;
+
+            background: #ffffff;
+
+            color: #6b7280;
+
+            font-size: 10px;
+
+            font-weight: 800;
+
+            letter-spacing: 1px;
+
+            text-transform: uppercase;
+        }}
+
+
+        /* ================================
+           ARTICLE CARD
+        ================================= */
+
+        .article {{
+            background: #ffffff;
+
+            border: 1px solid #e5e7eb;
+
+            border-radius: 18px;
+
+            padding: 58px 72px;
+
+            box-shadow:
+                0 10px 35px rgba(0, 0, 0, 0.06);
+        }}
+
+
+        /* ================================
+           TITLE
+        ================================= */
+
+        .article-title {{
+            max-width: 850px;
+
+            margin: 0 0 16px;
+
+            color: #111827;
+
+            font-size: 44px;
+
+            line-height: 1.15;
+
+            letter-spacing: -1.2px;
+        }}
+
+
+        /* ================================
+           META
+        ================================= */
+
+        .article-meta {{
+            display: flex;
+
+            align-items: center;
+
+            gap: 9px;
+
+            margin-bottom: 32px;
+
+            color: #6b7280;
+
+            font-size: 13px;
+        }}
+
+        .meta-divider {{
+            color: #d1d5db;
+        }}
+
+
+        /* ================================
+           QUERY
+        ================================= */
+
+        .query-box {{
+            margin-bottom: 40px;
+
+            padding: 18px 20px;
+
+            background: #f9fafb;
+
+            border: 1px solid #e5e7eb;
+
+            border-left: 4px solid #111827;
+
+            border-radius: 9px;
+        }}
+
+        .query-label {{
+            margin-bottom: 5px;
+
+            color: #6b7280;
+
+            font-size: 10px;
+
+            font-weight: 800;
+
+            letter-spacing: 1.2px;
+
+            text-transform: uppercase;
+        }}
+
+        .query-text {{
+            color: #111827;
+
+            font-size: 14px;
+
+            font-weight: 600;
+
+            line-height: 1.5;
+        }}
+
+
+        /* ================================
+           INTRODUCTION
+        ================================= */
+
+        .introduction {{
+            margin: 0 0 42px;
+
+            color: #374151;
+
+            font-size: 19px;
+
+            line-height: 1.85;
+
+            font-weight: 450;
+        }}
+
+
+        /* ================================
+           SECTIONS
+        ================================= */
+
+        .article-section {{
+            margin-top: 44px;
+        }}
+
+        .section-heading {{
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            margin-bottom: 13px;
+        }}
+
+        .section-line {{
+            width: 4px;
+
+            height: 24px;
+
+            flex-shrink: 0;
+
+            border-radius: 3px;
+
+            background: #111827;
+        }}
+
+        .article-section h2 {{
+            margin: 0;
+
+            color: #111827;
+
+            font-size: 25px;
+
+            line-height: 1.3;
+
+            letter-spacing: -0.3px;
+        }}
+
+        .article-section p {{
+            margin: 0;
+
+            color: #374151;
+
+            font-size: 16px;
+
+            line-height: 1.9;
+        }}
+
+
+        /* ================================
+           KEY POINTS
+        ================================= */
+
+        .key-points {{
+            margin-top: 48px;
+
+            padding: 28px 30px;
+
+            background: #f9fafb;
+
+            border: 1px solid #e5e7eb;
+
+            border-radius: 12px;
+        }}
+
+        .key-points h2 {{
+            margin: 0 0 18px;
+
+            color: #111827;
+
+            font-size: 21px;
+        }}
+
+        .key-points ul {{
+            list-style: none;
+
+            margin: 0;
+
+            padding: 0;
+        }}
+
+        .key-points li {{
+            display: flex;
+
+            align-items: flex-start;
+
+            gap: 11px;
+
+            margin-bottom: 12px;
+
+            color: #374151;
+
+            font-size: 14px;
+
+            line-height: 1.65;
+        }}
+
+        .key-points li:last-child {{
+            margin-bottom: 0;
+        }}
+
+        .point-icon {{
+            width: 20px;
+
+            height: 20px;
+
+            flex-shrink: 0;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            margin-top: 1px;
+
+            border-radius: 50%;
+
+            background: #111827;
+
+            color: #ffffff;
+
+            font-size: 11px;
+
+            font-weight: 700;
+        }}
+
+
+        /* ================================
+           CONCLUSION
+        ================================= */
+
+        .conclusion {{
+            margin-top: 48px;
+
+            padding: 28px 0 0;
+
+            border-top: 1px solid #e5e7eb;
+        }}
+
+        .conclusion h2 {{
+            margin: 0 0 12px;
+
+            color: #111827;
+
+            font-size: 22px;
+        }}
+
+        .conclusion p {{
+            margin: 0;
+
+            color: #374151;
+
+            font-size: 15px;
+
+            line-height: 1.85;
+        }}
+
+
+        /* ================================
+           SOURCES
+        ================================= */
+
+        .sources {{
+            margin-top: 58px;
+
+            padding-top: 34px;
+
+            border-top: 2px solid #e5e7eb;
+        }}
+
+        .sources h2 {{
+            margin: 0 0 7px;
+
+            color: #111827;
+
+            font-size: 23px;
+        }}
+
+        .sources-description {{
+            margin: 0 0 22px;
+
+            color: #6b7280;
+
+            font-size: 13px;
+        }}
+
+        .source-list {{
+            list-style: none;
+
+            padding: 0;
+
+            margin: 0;
+        }}
+
+        .source-item {{
+            display: flex;
+
+            gap: 16px;
+
+            padding: 18px 0;
+
+            border-bottom: 1px solid #e5e7eb;
+        }}
+
+        .source-item:last-child {{
+            border-bottom: none;
+        }}
+
+        .source-number {{
+            min-width: 32px;
+
+            height: 32px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border-radius: 8px;
+
+            background: #111827;
+
+            color: #ffffff;
+
+            font-size: 12px;
+
+            font-weight: 700;
+        }}
+
+        .source-details {{
+            min-width: 0;
+
+            flex: 1;
+        }}
+
+        .source-top {{
+            display: flex;
+
+            align-items: center;
+
+            flex-wrap: wrap;
+
+            gap: 8px;
+
+            margin-bottom: 4px;
+        }}
+
+        .source-name {{
+            color: #6b7280;
+
+            font-size: 12px;
+
+            font-weight: 600;
+        }}
+
+        .similarity-badge {{
+            padding: 3px 8px;
+
+            border-radius: 20px;
+
+            background: #f3f4f6;
+
+            border: 1px solid #e5e7eb;
+
+            color: #6b7280;
+
+            font-size: 10px;
+
+            font-weight: 700;
+        }}
+
+        .source-details > a:not(.source-link) {{
+            display: block;
+
+            color: #111827;
+
+            text-decoration: none;
+
+            font-size: 14px;
+
+            font-weight: 650;
+
+            line-height: 1.5;
+        }}
+
+        .source-details > a:not(.source-link):hover {{
+            text-decoration: underline;
+        }}
+
+        .source-link {{
+            display: inline-block;
+
+            margin-top: 7px;
+
+            color: #2563eb;
+
+            text-decoration: none;
+
+            font-size: 12px;
+
+            font-weight: 600;
+        }}
+
+        .source-link:hover {{
+            text-decoration: underline;
+        }}
+
+
+        /* ================================
+           TRUST FOOTER
+        ================================= */
+
+        .trust-footer {{
+            display: flex;
+
+            align-items: flex-start;
+
+            gap: 12px;
+
+            margin-top: 38px;
+
+            padding: 19px 20px;
+
+            background: #f3f4f6;
+
+            border: 1px solid #e5e7eb;
+
+            border-radius: 10px;
+
+            color: #6b7280;
+
+            font-size: 12px;
+
+            line-height: 1.65;
+        }}
+
+        .trust-footer-icon {{
+            width: 24px;
+
+            height: 24px;
+
+            flex-shrink: 0;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border-radius: 50%;
+
+            background: #111827;
+
+            color: #ffffff;
+
+            font-size: 11px;
+
+            font-weight: 700;
+        }}
+
+        .trust-footer strong {{
+            display: block;
+
+            margin-bottom: 3px;
+
+            color: #374151;
+
+            font-size: 12px;
+        }}
+
+
+        /* ================================
+           FOOTER
+        ================================= */
+
+        .page-footer {{
+            margin-top: 22px;
+
+            text-align: center;
+
+            color: #9ca3af;
+
+            font-size: 11px;
+
+            letter-spacing: 0.3px;
+        }}
+
+
+        /* ================================
+           MOBILE
+        ================================= */
+
+        @media (max-width: 700px) {{
+
+            .container {{
+                padding: 20px 10px 40px;
+            }}
+
+            .brand-row {{
+                margin-bottom: 15px;
+            }}
+
+            .article-label {{
+                display: none;
+            }}
+
+            .article {{
+                padding: 32px 22px;
+
+                border-radius: 12px;
+            }}
+
+            .article-title {{
+                font-size: 32px;
+
+                letter-spacing: -0.7px;
+            }}
+
+            .article-meta {{
+                flex-wrap: wrap;
+            }}
+
+            .introduction {{
+                font-size: 17px;
+            }}
+
+            .article-section {{
+                margin-top: 34px;
+            }}
+
+            .article-section h2 {{
+                font-size: 22px;
+            }}
+
+            .article-section p {{
+                font-size: 15px;
+            }}
+
+            .key-points {{
+                padding: 23px 20px;
+            }}
+
+            .source-item {{
+                gap: 12px;
+            }}
+
+        }}
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <div class="container">
+
+        <div class="brand-row">
+
+            <div class="brand">
+
+                <div class="brand-mark">
+                    TN
+                </div>
+
+                TRUSTNEWS
+
+            </div>
+
+            <div class="article-label">
+                Source-Grounded Article
+            </div>
+
+        </div>
+
+
+        <article class="article">
+
+            <h1 class="article-title">
+                {title}
+            </h1>
+
+
+            <div class="article-meta">
+
+                <span>
+                    Generated on {generated_at}
+                </span>
+
+                <span class="meta-divider">
+                    •
+                </span>
+
+                <span>
+                    {source_count} sources
+                </span>
+
+            </div>
+
+
+            <div class="query-box">
+
+                <div class="query-label">
+                    Search Query
+                </div>
+
+                <div class="query-text">
+                    {safe_query}
+                </div>
+
+            </div>
+
+
+            <p class="introduction">
+                {introduction}
+            </p>
+
+
+            {sections_html}
+
+
+            <section class="key-points">
+
+                <h2>
+                    Key Points
+                </h2>
+
+                <ul>
+                    {key_points_html}
+                </ul>
+
+            </section>
+
+
+            <section class="conclusion">
+
+                <h2>
+                    Conclusion
+                </h2>
+
+                <p>
+                    {conclusion}
+                </p>
+
+            </section>
+
+
+            <section class="sources">
+
+                <h2>
+                    Sources Used</h2>
+
+                <p class="sources-description">
+                    The following sources were retrieved
+                    through TrustNews semantic search.
+                </p>
+
+                <ul class="source-list">
+                    {sources_html}
+                </ul>
+
+            </section>
+
+
+            <div class="trust-footer">
+
+                <div class="trust-footer-icon">
+                    ✓
+                </div>
+
+                <div>
+
+                    <strong>
+                        TrustNews evidence notice
+                    </strong>
+
+                    This article was generated using
+                    news sources retrieved by TrustNews
+                    semantic search. Original source
+                    links are provided above.
+
+                </div>
+
+            </div>
+
+        </article>
+
+
+        <div class="page-footer">
+            TrustNews · Semantic News Search
+        </div>
+
+    </div>
+
+</body>
+
+</html>
+"""
+
+    return html
+
