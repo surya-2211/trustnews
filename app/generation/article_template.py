@@ -1,957 +1,1994 @@
 from html import escape
-from datetime import datetime
+from typing import Dict, List
+
+
+# =========================================================
+# TRUSTNEWS ARTICLE TEMPLATE
+# Black & White Editorial UI
+# =========================================================
+
+
+def safe_text(value) -> str:
+    """
+    Safely convert a value to escaped HTML text.
+    """
+    if value is None:
+        return ""
+
+    return escape(str(value))
+
+
+def safe_url(value) -> str:
+    """
+    Safely prepare a URL for use inside an href.
+    """
+    if not value:
+        return "#"
+
+    value = str(value).strip()
+
+    if not (
+        value.startswith("http://")
+        or value.startswith("https://")
+    ):
+        return "#"
+
+    return escape(value, quote=True)
+
+
+def format_score(value) -> str:
+    """
+    Format relevance/reranking scores for display.
+    """
+    try:
+        return f"{float(value):.1%}"
+    except (TypeError, ValueError):
+        return "—"
+
+
+def truncate_text(
+    text: str,
+    max_length: int = 260
+) -> str:
+    """
+    Create a compact source preview.
+    """
+    if not text:
+        return ""
+
+    text = " ".join(str(text).split())
+
+    if len(text) <= max_length:
+        return text
+
+    return text[:max_length].rstrip() + "…"
+
+
+def build_source_card(
+    source: Dict,
+    index: int
+) -> str:
+    """
+    Build a source card for the article sidebar.
+    """
+
+    title = safe_text(
+        source.get(
+            "title",
+            "Untitled source"
+        )
+    )
+
+    publisher = safe_text(
+        source.get(
+            "source",
+            "Unknown source"
+        )
+    )
+
+    url = safe_url(
+        source.get(
+            "url",
+            ""
+        )
+    )
+
+    preview = safe_text(
+        truncate_text(
+            source.get(
+                "content",
+                ""
+            )
+        )
+    )
+
+    rerank_score = format_score(
+        source.get(
+            "rerank_score"
+        )
+    )
+
+    retrieval_score = format_score(
+        source.get(
+            "retrieval_score"
+        )
+    )
+
+    return f"""
+    <article class="source-card">
+
+        <div class="source-card-top">
+
+            <span class="source-number">
+                {index:02d}
+            </span>
+
+            <span class="source-label">
+                SOURCE
+            </span>
+
+        </div>
+
+        <h3 class="source-title">
+            {title}
+        </h3>
+
+        <div class="source-publisher">
+            {publisher}
+        </div>
+
+        <p class="source-preview">
+            {preview}
+        </p>
+
+        <div class="source-metrics">
+
+            <div class="source-metric">
+
+                <span class="metric-label">
+                    RELEVANCE
+                </span>
+
+                <strong>
+                    {rerank_score}
+                </strong>
+
+            </div>
+
+            <div class="source-metric">
+
+                <span class="metric-label">
+                    RETRIEVAL
+                </span>
+
+                <strong>
+                    {retrieval_score}
+                </strong>
+
+            </div>
+
+        </div>
+
+        <a
+            class="source-link"
+            href="{url}"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            Read source
+            <span aria-hidden="true">↗</span>
+        </a>
+
+    </article>
+    """
+
+
+def build_key_points(
+    key_points: List[str]
+) -> str:
+    """
+    Build the key-points block.
+    """
+
+    if not key_points:
+        return ""
+
+    items = []
+
+    for point in key_points:
+
+        if not point:
+            continue
+
+        items.append(
+            f"""
+            <li class="key-point">
+                <span class="key-point-mark"></span>
+                <span>
+                    {safe_text(point)}
+                </span>
+            </li>
+            """
+        )
+
+    if not items:
+        return ""
+
+    return f"""
+    <section class="key-points">
+
+        <div class="section-eyebrow">
+            KEY POINTS
+        </div>
+
+        <h2>
+            What matters
+        </h2>
+
+        <ul>
+            {''.join(items)}
+        </ul>
+
+    </section>
+    """
+
+
+def build_article_sections(
+    sections: List[Dict]
+) -> str:
+    """
+    Build numbered article sections.
+    """
+
+    if not sections:
+        return ""
+
+    output = []
+
+    section_number = 0
+
+    for section in sections:
+
+        if not isinstance(
+            section,
+            dict
+        ):
+            continue
+
+        heading = section.get(
+            "heading",
+            ""
+        )
+
+        content = section.get(
+            "content",
+            ""
+        )
+
+        if not heading and not content:
+            continue
+
+        section_number += 1
+
+        heading_html = safe_text(
+            heading
+        )
+
+        content_html = safe_text(
+            content
+        )
+
+        output.append(
+            f"""
+            <section
+                class="article-section"
+                id="section-{section_number}"
+            >
+
+                <div class="section-number">
+                    {section_number:02d}
+                </div>
+
+                <div class="section-body">
+
+                    <div class="section-eyebrow">
+                        SECTION {section_number:02d}
+                    </div>
+
+                    <h2>
+                        {heading_html}
+                    </h2>
+
+                    <div class="section-content">
+                        {content_html}
+                    </div>
+
+                </div>
+
+            </section>
+            """
+        )
+
+    return "\n".join(output)
+
+
+def build_source_list(
+    sources: List[Dict]
+) -> str:
+    """
+    Build the complete source list.
+    """
+
+    if not sources:
+        return """
+        <div class="empty-sources">
+            No source information available.
+        </div>
+        """
+
+    cards = []
+
+    for index, source in enumerate(
+        sources,
+        start=1
+    ):
+
+        cards.append(
+            build_source_card(
+                source=source,
+                index=index
+            )
+        )
+
+    return "\n".join(cards)
 
 
 def build_article_html(
     query: str,
-    article: dict,
-    sources: list
+    article: Dict,
+    sources: List[Dict]
 ) -> str:
+    """
+    Build the complete TrustNews article HTML page.
 
-    title = escape(
-        article.get("title", "TrustNews Generated Article")
+    Parameters
+    ----------
+    query:
+        Original user search query.
+
+    article:
+        Structured article returned by Gemini.
+
+    sources:
+        Retrieved evidence sources.
+    """
+
+    # =====================================================
+    # ARTICLE DATA
+    # =====================================================
+
+    title = safe_text(
+        article.get(
+            "title",
+            "TrustNews Article"
+        )
     )
 
-    introduction = escape(
-        article.get("introduction", "")
+    introduction = safe_text(
+        article.get(
+            "introduction",
+            ""
+        )
     )
 
-    conclusion = escape(
-        article.get("conclusion", "")
+    conclusion = safe_text(
+        article.get(
+            "conclusion",
+            ""
+        )
     )
 
-    # --------------------------------
-    # ARTICLE SECTIONS
-    # --------------------------------
-
-    sections_html = ""
-
-    for section in article.get("sections", []):
-
-        heading = escape(
-            section.get("heading", "")
-        )
-
-        content = escape(
-            section.get("content", "")
-        )
-
-        sections_html += f"""
-        <section class="article-section">
-
-            <div class="section-heading">
-                <span class="section-line"></span>
-                <h2>{heading}</h2>
-            </div>
-
-            <p>{content}</p>
-
-        </section>
-        """
-
-    # --------------------------------
-    # KEY POINTS
-    # --------------------------------
-
-    key_points_html = ""
-
-    for point in article.get("key_points", []):
-
-        key_points_html += f"""
-        <li>
-            <span class="point-icon">✓</span>
-            <span>{escape(point)}</span>
-        </li>
-        """
-
-    # --------------------------------
-    # SOURCES
-    # --------------------------------
-
-    sources_html = ""
-
-    for index, source in enumerate(sources, start=1):
-
-        source_title = escape(
-            source.get("title", "")
-        )
-
-        source_name = escape(
-            source.get("source", "")
-        )
-
-        source_url = escape(
-            source.get("url", "")
-        )
-
-        score = source.get("score")
-
-        score_text = ""
-
-        if isinstance(score, (int, float)):
-            score_text = f"{score:.4f}"
-
-        similarity_html = ""
-
-        if score_text:
-            similarity_html = f"""
-            <span class="similarity-badge">
-                Similarity {score_text}
-            </span>
-            """
-
-        sources_html += f"""
-        <li class="source-item">
-
-            <div class="source-number">
-                {index}
-            </div>
-
-            <div class="source-details">
-
-                <div class="source-top">
-
-                    <span class="source-name">
-                        {source_name}
-                    </span>
-
-                    {similarity_html}
-
-                </div>
-
-                <a
-                    href="{source_url}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    {source_title}
-                </a>
-
-                <a
-                    class="source-link"
-                    href="{source_url}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    Read original source →
-                </a>
-
-            </div>
-
-        </li>
-        """
-
-    # --------------------------------
-    # META
-    # --------------------------------
-
-    generated_at = datetime.now().strftime(
-        "%d %B %Y, %H:%M"
+    clean_query = safe_text(
+        query
     )
 
-    source_count = len(sources)
+    sections = article.get(
+        "sections",
+        []
+    )
 
-    safe_query = escape(query)
+    key_points = article.get(
+        "key_points",
+        []
+    )
 
-    # --------------------------------
-    # HTML
-    # --------------------------------
+    source_count = len(
+        sources
+    )
 
-    html = f"""
-<!DOCTYPE html>
+    section_html = build_article_sections(
+        sections
+    )
+
+    key_points_html = build_key_points(
+        key_points
+    )
+
+    sources_html = build_source_list(
+        sources
+    )
+
+    # =====================================================
+    # COMPLETE HTML
+    # =====================================================
+
+    return f"""<!DOCTYPE html>
 
 <html lang="en">
 
 <head>
 
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-    <title>{title} | TrustNews</title>
+<meta
+    name="description"
+    content="{safe_text(query)} — TrustNews evidence-grounded news article."
+>
 
-    <style>
+<title>
+    {title} — TrustNews
+</title>
 
-        * {{
-            box-sizing: border-box;
-        }}
 
-        html {{
-            scroll-behavior: smooth;
-        }}
+<style>
 
-        body {{
-            margin: 0;
+/* ========================================================
+   RESET
+   ======================================================== */
 
-            background: #f4f6f8;
+*,
+*::before,
+*::after {{
+    box-sizing: border-box;
+}}
 
-            color: #1f2937;
+html {{
+    scroll-behavior: smooth;
+}}
 
-            font-family:
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                Arial,
-                Helvetica,
-                sans-serif;
+body {{
+    margin: 0;
+    padding: 0;
 
-            line-height: 1.75;
-        }}
+    background: #f5f5f5;
 
+    color: #111111;
 
-        /* ================================
-           PAGE
-        ================================= */
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Helvetica,
+        Arial,
+        sans-serif;
 
-        .container {{
-            max-width: 1000px;
+    line-height: 1.7;
 
-            margin: 0 auto;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}}
 
-            padding: 45px 24px 70px;
-        }}
+a {{
+    color: inherit;
+}}
 
+button,
+a {{
+    -webkit-tap-highlight-color: transparent;
+}}
 
-        /* ================================
-           BRAND
-        ================================= */
 
-        .brand-row {{
-            display: flex;
+/* ========================================================
+   PAGE
+   ======================================================== */
 
-            align-items: center;
+.page {{
+    min-height: 100vh;
+    background: #f5f5f5;
+}}
 
-            justify-content: space-between;
 
-            margin-bottom: 22px;
-        }}
+/* ========================================================
+   TOP NAVIGATION
+   ======================================================== */
 
-        .brand {{
-            display: flex;
+.topbar {{
+    position: sticky;
+    top: 0;
+    z-index: 100;
 
-            align-items: center;
+    height: 68px;
 
-            gap: 10px;
+    background: rgba(255, 255, 255, 0.96);
 
-            color: #111827;
+    border-bottom: 1px solid #d9d9d9;
 
-            font-size: 13px;
+    backdrop-filter: blur(12px);
+}}
 
-            font-weight: 800;
+.topbar-inner {{
+    width: min(
+        1440px,
+        calc(100% - 48px)
+    );
 
-            letter-spacing: 2px;
-        }}
+    height: 100%;
 
-        .brand-mark {{
-            width: 34px;
+    margin: 0 auto;
 
-            height: 34px;
+    display: flex;
 
-            display: flex;
+    align-items: center;
 
-            align-items: center;
+    justify-content: space-between;
+}}
 
-            justify-content: center;
+.brand {{
+    display: inline-flex;
 
-            border-radius: 9px;
+    align-items: center;
 
-            background: #111827;
+    gap: 12px;
 
-            color: #ffffff;
+    text-decoration: none;
+}}
 
-            font-size: 10px;
+.brand-mark {{
+    width: 34px;
+    height: 34px;
 
-            letter-spacing: 0;
-        }}
+    background: #111111;
 
-        .article-label {{
-            padding: 7px 11px;
+    color: #ffffff;
 
-            border: 1px solid #e5e7eb;
+    display: grid;
 
-            border-radius: 20px;
+    place-items: center;
 
-            background: #ffffff;
+    font-size: 15px;
 
-            color: #6b7280;
+    font-weight: 900;
 
-            font-size: 10px;
+    letter-spacing: -0.04em;
+}}
 
-            font-weight: 800;
+.brand-name {{
+    font-size: 19px;
 
-            letter-spacing: 1px;
+    font-weight: 850;
 
-            text-transform: uppercase;
-        }}
+    letter-spacing: -0.04em;
+}}
 
+.brand-subtitle {{
+    color: #777777;
 
-        /* ================================
-           ARTICLE CARD
-        ================================= */
+    font-size: 11px;
 
-        .article {{
-            background: #ffffff;
+    font-weight: 650;
 
-            border: 1px solid #e5e7eb;
+    letter-spacing: 0.08em;
 
-            border-radius: 18px;
+    text-transform: uppercase;
 
-            padding: 58px 72px;
+    border-left: 1px solid #cccccc;
 
-            box-shadow:
-                0 10px 35px rgba(0, 0, 0, 0.06);
-        }}
+    padding-left: 12px;
 
+    margin-left: 2px;
+}}
 
-        /* ================================
-           TITLE
-        ================================= */
+.topbar-right {{
+    display: flex;
 
-        .article-title {{
-            max-width: 850px;
+    align-items: center;
 
-            margin: 0 0 16px;
+    gap: 18px;
+}}
 
-            color: #111827;
+.evidence-badge {{
+    display: inline-flex;
 
-            font-size: 44px;
+    align-items: center;
 
-            line-height: 1.15;
+    gap: 8px;
 
-            letter-spacing: -1.2px;
-        }}
+    padding: 8px 12px;
 
+    border: 1px solid #d3d3d3;
 
-        /* ================================
-           META
-        ================================= */
+    background: #fafafa;
 
-        .article-meta {{
-            display: flex;
+    color: #333333;
 
-            align-items: center;
+    font-size: 11px;
 
-            gap: 9px;
+    font-weight: 750;
 
-            margin-bottom: 32px;
+    letter-spacing: 0.07em;
 
-            color: #6b7280;
+    text-transform: uppercase;
+}}
 
-            font-size: 13px;
-        }}
+.evidence-dot {{
+    width: 7px;
+    height: 7px;
 
-        .meta-divider {{
-            color: #d1d5db;
-        }}
+    border-radius: 50%;
 
+    background: #111111;
+}}
 
-        /* ================================
-           QUERY
-        ================================= */
 
-        .query-box {{
-            margin-bottom: 40px;
+/* ========================================================
+   HERO
+   ======================================================== */
 
-            padding: 18px 20px;
+.hero {{
+    background: #ffffff;
 
-            background: #f9fafb;
+    border-bottom: 1px solid #d7d7d7;
+}}
 
-            border: 1px solid #e5e7eb;
+.hero-inner {{
+    width: min(
+        1440px,
+        calc(100% - 48px)
+    );
 
-            border-left: 4px solid #111827;
+    margin: 0 auto;
 
-            border-radius: 9px;
-        }}
+    padding:
+        78px
+        0
+        72px;
+}}
 
-        .query-label {{
-            margin-bottom: 5px;
+.hero-meta {{
+    display: flex;
 
-            color: #6b7280;
+    align-items: center;
 
-            font-size: 10px;
+    gap: 12px;
 
-            font-weight: 800;
+    margin-bottom: 28px;
 
-            letter-spacing: 1.2px;
+    color: #666666;
 
-            text-transform: uppercase;
-        }}
+    font-size: 11px;
 
-        .query-text {{
-            color: #111827;
+    font-weight: 750;
 
-            font-size: 14px;
+    letter-spacing: 0.12em;
 
-            font-weight: 600;
+    text-transform: uppercase;
+}}
 
-            line-height: 1.5;
-        }}
+.hero-meta-line {{
+    width: 38px;
+    height: 1px;
 
+    background: #111111;
+}}
 
-        /* ================================
-           INTRODUCTION
-        ================================= */
+.hero-title {{
+    max-width: 1120px;
 
-        .introduction {{
-            margin: 0 0 42px;
+    margin: 0;
 
-            color: #374151;
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
 
-            font-size: 19px;
+    font-size:
+        clamp(
+            48px,
+            6vw,
+            88px
+        );
 
-            line-height: 1.85;
+    line-height: 0.98;
 
-            font-weight: 450;
-        }}
+    letter-spacing: -0.055em;
 
+    font-weight: 700;
 
-        /* ================================
-           SECTIONS
-        ================================= */
+    color: #0c0c0c;
+}}
 
-        .article-section {{
-            margin-top: 44px;
-        }}
+.hero-introduction {{
+    max-width: 900px;
 
-        .section-heading {{
-            display: flex;
+    margin:
+        34px
+        0
+        0;
 
-            align-items: center;
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
 
-            gap: 12px;
+    font-size:
+        clamp(
+            20px,
+            2vw,
+            27px
+        );
 
-            margin-bottom: 13px;
-        }}
+    line-height: 1.55;
 
-        .section-line {{
-            width: 4px;
+    color: #454545;
+}}
 
-            height: 24px;
+.hero-query {{
+    display: inline-flex;
 
-            flex-shrink: 0;
+    align-items: center;
 
-            border-radius: 3px;
+    max-width: 100%;
 
-            background: #111827;
-        }}
+    margin-top: 38px;
 
-        .article-section h2 {{
-            margin: 0;
+    padding: 11px 14px;
 
-            color: #111827;
+    border: 1px solid #d4d4d4;
 
-            font-size: 25px;
+    background: #fafafa;
 
-            line-height: 1.3;
+    color: #555555;
 
-            letter-spacing: -0.3px;
-        }}
+    font-size: 12px;
 
-        .article-section p {{
-            margin: 0;
+    font-weight: 650;
 
-            color: #374151;
+    overflow-wrap: anywhere;
+}}
 
-            font-size: 16px;
+.hero-query-label {{
+    margin-right: 8px;
 
-            line-height: 1.9;
-        }}
+    color: #111111;
 
+    font-weight: 800;
 
-        /* ================================
-           KEY POINTS
-        ================================= */
+    text-transform: uppercase;
 
-        .key-points {{
-            margin-top: 48px;
+    letter-spacing: 0.08em;
+}}
 
-            padding: 28px 30px;
 
-            background: #f9fafb;
+/* ========================================================
+   MAIN LAYOUT
+   ======================================================== */
 
-            border: 1px solid #e5e7eb;
+.main {{
+    width: min(
+        1440px,
+        calc(100% - 48px)
+    );
 
-            border-radius: 12px;
-        }}
+    margin: 0 auto;
 
-        .key-points h2 {{
-            margin: 0 0 18px;
+    display: grid;
 
-            color: #111827;
+    grid-template-columns:
+        minmax(0, 1fr)
+        360px;
 
-            font-size: 21px;
-        }}
+    gap: 72px;
 
-        .key-points ul {{
-            list-style: none;
+    align-items: start;
 
-            margin: 0;
+    padding:
+        72px
+        0
+        100px;
+}}
 
-            padding: 0;
-        }}
 
-        .key-points li {{
-            display: flex;
+/* ========================================================
+   ARTICLE
+   ======================================================== */
 
-            align-items: flex-start;
+.article-column {{
+    min-width: 0;
 
-            gap: 11px;
+    max-width: 850px;
+}}
 
-            margin-bottom: 12px;
+.article-intro {{
+    padding-bottom: 44px;
 
-            color: #374151;
+    margin-bottom: 12px;
 
-            font-size: 14px;
+    border-bottom: 1px solid #d5d5d5;
+}}
 
-            line-height: 1.65;
-        }}
+.article-intro-label {{
+    margin-bottom: 14px;
 
-        .key-points li:last-child {{
-            margin-bottom: 0;
-        }}
+    color: #777777;
 
-        .point-icon {{
-            width: 20px;
+    font-size: 10px;
 
-            height: 20px;
+    font-weight: 800;
 
-            flex-shrink: 0;
+    letter-spacing: 0.14em;
 
-            display: flex;
+    text-transform: uppercase;
+}}
 
-            align-items: center;
+.article-intro-text {{
+    margin: 0;
 
-            justify-content: center;
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
 
-            margin-top: 1px;
+    font-size: 23px;
 
-            border-radius: 50%;
+    line-height: 1.7;
 
-            background: #111827;
+    color: #222222;
+}}
 
-            color: #ffffff;
 
-            font-size: 11px;
+/* ========================================================
+   ARTICLE SECTION
+   ======================================================== */
 
-            font-weight: 700;
-        }}
+.article-section {{
+    position: relative;
 
+    display: grid;
 
-        /* ================================
-           CONCLUSION
-        ================================= */
+    grid-template-columns: 70px minmax(0, 1fr);
 
-        .conclusion {{
-            margin-top: 48px;
+    gap: 28px;
 
-            padding: 28px 0 0;
+    padding:
+        58px
+        0;
 
-            border-top: 1px solid #e5e7eb;
-        }}
+    border-bottom: 1px solid #dedede;
+}}
 
-        .conclusion h2 {{
-            margin: 0 0 12px;
+.section-number {{
+    padding-top: 5px;
 
-            color: #111827;
+    color: #a0a0a0;
 
-            font-size: 22px;
-        }}
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
 
-        .conclusion p {{
-            margin: 0;
+    font-size: 18px;
 
-            color: #374151;
+    font-weight: 700;
+}}
 
-            font-size: 15px;
+.section-body {{
+    min-width: 0;
+}}
 
-            line-height: 1.85;
-        }}
+.section-eyebrow {{
+    margin-bottom: 11px;
 
+    color: #777777;
 
-        /* ================================
-           SOURCES
-        ================================= */
+    font-size: 10px;
 
-        .sources {{
-            margin-top: 58px;
+    font-weight: 800;
 
-            padding-top: 34px;
+    letter-spacing: 0.14em;
 
-            border-top: 2px solid #e5e7eb;
-        }}
+    text-transform: uppercase;
+}}
 
-        .sources h2 {{
-            margin: 0 0 7px;
+.section-body h2 {{
+    margin:
+        0
+        0
+        20px;
 
-            color: #111827;
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
 
-            font-size: 23px;
-        }}
+    font-size:
+        clamp(
+            28px,
+            3vw,
+            40px
+        );
 
-        .sources-description {{
-            margin: 0 0 22px;
+    line-height: 1.12;
 
-            color: #6b7280;
+    letter-spacing: -0.035em;
 
-            font-size: 13px;
-        }}
+    color: #111111;
+}}
 
-        .source-list {{
-            list-style: none;
+.section-content {{
+    white-space: pre-line;
 
-            padding: 0;
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
 
-            margin: 0;
-        }}
+    font-size: 18px;
 
-        .source-item {{
-            display: flex;
+    line-height: 1.9;
 
-            gap: 16px;
+    color: #303030;
+}}
 
-            padding: 18px 0;
+.section-content::first-letter {{
+    font-size: 1.2em;
+}}
 
-            border-bottom: 1px solid #e5e7eb;
-        }}
 
-        .source-item:last-child {{
-            border-bottom: none;
-        }}
+/* ========================================================
+   KEY POINTS
+   ======================================================== */
 
-        .source-number {{
-            min-width: 32px;
+.key-points {{
+    margin-top: 58px;
 
-            height: 32px;
+    padding:
+        34px
+        36px
+        38px;
 
-            display: flex;
+    background: #111111;
 
-            align-items: center;
+    color: #ffffff;
+}}
 
-            justify-content: center;
+.key-points .section-eyebrow {{
+    color: #999999;
+}}
 
-            border-radius: 8px;
+.key-points h2 {{
+    margin:
+        0
+        0
+        24px;
 
-            background: #111827;
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
 
-            color: #ffffff;
+    font-size: 34px;
 
-            font-size: 12px;
+    line-height: 1.15;
 
-            font-weight: 700;
-        }}
+    letter-spacing: -0.03em;
 
-        .source-details {{
-            min-width: 0;
+    font-weight: 700;
+}}
 
-            flex: 1;
-        }}
+.key-points ul {{
+    list-style: none;
 
-        .source-top {{
-            display: flex;
+    margin: 0;
 
-            align-items: center;
+    padding: 0;
+}}
 
-            flex-wrap: wrap;
+.key-point {{
+    display: grid;
 
-            gap: 8px;
+    grid-template-columns: 12px minmax(0, 1fr);
 
-            margin-bottom: 4px;
-        }}
+    gap: 14px;
 
-        .source-name {{
-            color: #6b7280;
+    padding: 17px 0;
 
-            font-size: 12px;
+    border-top: 1px solid #333333;
 
-            font-weight: 600;
-        }}
+    color: #eeeeee;
 
-        .similarity-badge {{
-            padding: 3px 8px;
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
 
-            border-radius: 20px;
+    font-size: 16px;
 
-            background: #f3f4f6;
+    line-height: 1.65;
+}}
 
-            border: 1px solid #e5e7eb;
+.key-point:last-child {{
+    border-bottom: 1px solid #333333;
+}}
 
-            color: #6b7280;
+.key-point-mark {{
+    width: 7px;
+    height: 7px;
 
-            font-size: 10px;
+    margin-top: 9px;
 
-            font-weight: 700;
-        }}
+    background: #ffffff;
+}}
 
-        .source-details > a:not(.source-link) {{
-            display: block;
 
-            color: #111827;
+/* ========================================================
+   CONCLUSION
+   ======================================================== */
 
-            text-decoration: none;
+.conclusion {{
+    margin-top: 58px;
 
-            font-size: 14px;
+    padding:
+        42px
+        44px;
 
-            font-weight: 650;
+    background: #ffffff;
 
-            line-height: 1.5;
-        }}
+    border:
+        1px
+        solid
+        #cfcfcf;
 
-        .source-details > a:not(.source-link):hover {{
-            text-decoration: underline;
-        }}
+    border-left:
+        5px
+        solid
+        #111111;
+}}
 
-        .source-link {{
-            display: inline-block;
+.conclusion-label {{
+    margin-bottom: 14px;
 
-            margin-top: 7px;
+    color: #777777;
 
-            color: #2563eb;
+    font-size: 10px;
 
-            text-decoration: none;
+    font-weight: 800;
 
-            font-size: 12px;
+    letter-spacing: 0.14em;
 
-            font-weight: 600;
-        }}
+    text-transform: uppercase;
+}}
 
-        .source-link:hover {{
-            text-decoration: underline;
-        }}
+.conclusion h2 {{
+    margin:
+        0
+        0
+        18px;
 
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
 
-        /* ================================
-           TRUST FOOTER
-        ================================= */
+    font-size: 34px;
 
-        .trust-footer {{
-            display: flex;
+    line-height: 1.1;
 
-            align-items: flex-start;
+    letter-spacing: -0.035em;
+}}
 
-            gap: 12px;
+.conclusion p {{
+    margin: 0;
 
-            margin-top: 38px;
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
 
-            padding: 19px 20px;
+    font-size: 18px;
 
-            background: #f3f4f6;
+    line-height: 1.85;
 
-            border: 1px solid #e5e7eb;
+    color: #333333;
+}}
 
-            border-radius: 10px;
 
-            color: #6b7280;
+/* ========================================================
+   SIDEBAR
+   ======================================================== */
 
-            font-size: 12px;
+.sidebar {{
+    position: sticky;
 
-            line-height: 1.65;
-        }}
+    top: 92px;
 
-        .trust-footer-icon {{
-            width: 24px;
+    min-width: 0;
+}}
 
-            height: 24px;
+.sidebar-heading {{
+    display: flex;
 
-            flex-shrink: 0;
+    align-items: center;
 
-            display: flex;
+    justify-content: space-between;
 
-            align-items: center;
+    gap: 15px;
 
-            justify-content: center;
+    padding-bottom: 16px;
 
-            border-radius: 50%;
+    border-bottom: 2px solid #111111;
+}}
 
-            background: #111827;
+.sidebar-heading h2 {{
+    margin: 0;
 
-            color: #ffffff;
+    font-size: 13px;
 
-            font-size: 11px;
+    font-weight: 850;
 
-            font-weight: 700;
-        }}
+    letter-spacing: 0.09em;
 
-        .trust-footer strong {{
-            display: block;
+    text-transform: uppercase;
+}}
 
-            margin-bottom: 3px;
+.sidebar-count {{
+    display: inline-flex;
 
-            color: #374151;
+    min-width: 27px;
+    height: 27px;
 
-            font-size: 12px;
-        }}
+    padding: 0 8px;
 
+    align-items: center;
 
-        /* ================================
-           FOOTER
-        ================================= */
+    justify-content: center;
 
-        .page-footer {{
-            margin-top: 22px;
+    background: #111111;
 
-            text-align: center;
+    color: #ffffff;
 
-            color: #9ca3af;
+    font-size: 11px;
 
-            font-size: 11px;
+    font-weight: 800;
+}}
 
-            letter-spacing: 0.3px;
-        }}
+.sources-list {{
+    display: flex;
 
+    flex-direction: column;
 
-        /* ================================
-           MOBILE
-        ================================= */
+    gap: 0;
+}}
 
-        @media (max-width: 700px) {{
 
-            .container {{
-                padding: 20px 10px 40px;
-            }}
+/* ========================================================
+   SOURCE CARD
+   ======================================================== */
 
-            .brand-row {{
-                margin-bottom: 15px;
-            }}
+.source-card {{
+    position: relative;
 
-            .article-label {{
-                display: none;
-            }}
+    padding:
+        26px
+        0
+        28px;
 
-            .article {{
-                padding: 32px 22px;
+    border-bottom: 1px solid #d6d6d6;
+}}
 
-                border-radius: 12px;
-            }}
+.source-card-top {{
+    display: flex;
 
-            .article-title {{
-                font-size: 32px;
+    align-items: center;
 
-                letter-spacing: -0.7px;
-            }}
+    justify-content: space-between;
 
-            .article-meta {{
-                flex-wrap: wrap;
-            }}
+    margin-bottom: 17px;
+}}
 
-            .introduction {{
-                font-size: 17px;
-            }}
+.source-number {{
+    color: #999999;
 
-            .article-section {{
-                margin-top: 34px;
-            }}
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
 
-            .article-section h2 {{
-                font-size: 22px;
-            }}
+    font-size: 15px;
 
-            .article-section p {{
-                font-size: 15px;
-            }}
+    font-weight: 700;
+}}
 
-            .key-points {{
-                padding: 23px 20px;
-            }}
+.source-label {{
+    color: #777777;
 
-            .source-item {{
-                gap: 12px;
-            }}
+    font-size: 9px;
 
-        }}
+    font-weight: 850;
 
-    </style>
+    letter-spacing: 0.13em;
+}}
+
+.source-title {{
+    margin:
+        0
+        0
+        8px;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 21px;
+
+    line-height: 1.25;
+
+    letter-spacing: -0.025em;
+
+    color: #111111;
+}}
+
+.source-publisher {{
+    margin-bottom: 13px;
+
+    color: #555555;
+
+    font-size: 11px;
+
+    font-weight: 750;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.07em;
+}}
+
+.source-preview {{
+    margin:
+        0
+        0
+        18px;
+
+    color: #666666;
+
+    font-size: 13px;
+
+    line-height: 1.7;
+}}
+
+.source-metrics {{
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    border-top: 1px solid #dddddd;
+
+    border-bottom: 1px solid #dddddd;
+
+    margin-bottom: 18px;
+}}
+
+.source-metric {{
+    padding:
+        11px
+        0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 3px;
+}}
+
+.source-metric + .source-metric {{
+    border-left: 1px solid #dddddd;
+
+    padding-left: 14px;
+}}
+
+.metric-label {{
+    color: #999999;
+
+    font-size: 8px;
+
+    font-weight: 850;
+
+    letter-spacing: 0.12em;
+}}
+
+.source-metric strong {{
+    color: #111111;
+
+    font-size: 14px;
+
+    font-weight: 850;
+}}
+
+.source-link {{
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    color: #111111;
+
+    font-size: 11px;
+
+    font-weight: 800;
+
+    text-decoration: none;
+
+    border-bottom: 1px solid #111111;
+
+    padding-bottom: 2px;
+
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease;
+}}
+
+.source-link:hover {{
+    opacity: 0.55;
+
+    transform: translateX(2px);
+}}
+
+.empty-sources {{
+    padding:
+        25px
+        0;
+
+    color: #777777;
+
+    font-size: 13px;
+}}
+
+
+/* ========================================================
+   EVIDENCE NOTICE
+   ======================================================== */
+
+.evidence-notice {{
+    margin-top: 28px;
+
+    padding:
+        20px
+        20px;
+
+    background: #eeeeee;
+
+    border: 1px solid #d6d6d6;
+}}
+
+.evidence-notice-title {{
+    margin-bottom: 7px;
+
+    color: #111111;
+
+    font-size: 10px;
+
+    font-weight: 850;
+
+    letter-spacing: 0.11em;
+
+    text-transform: uppercase;
+}}
+
+.evidence-notice-text {{
+    margin: 0;
+
+    color: #666666;
+
+    font-size: 12px;
+
+    line-height: 1.65;
+}}
+
+
+/* ========================================================
+   FOOTER
+   ======================================================== */
+
+.footer {{
+    border-top: 1px solid #cfcfcf;
+
+    background: #111111;
+
+    color: #ffffff;
+}}
+
+.footer-inner {{
+    width: min(
+        1440px,
+        calc(100% - 48px)
+    );
+
+    margin: 0 auto;
+
+    padding:
+        44px
+        0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 30px;
+}}
+
+.footer-brand {{
+    display: flex;
+
+    align-items: center;
+
+    gap: 11px;
+}}
+
+.footer-mark {{
+    width: 29px;
+    height: 29px;
+
+    background: #ffffff;
+
+    color: #111111;
+
+    display: grid;
+
+    place-items: center;
+
+    font-size: 12px;
+
+    font-weight: 900;
+}}
+
+.footer-name {{
+    font-size: 14px;
+
+    font-weight: 800;
+
+    letter-spacing: -0.02em;
+}}
+
+.footer-text {{
+    color: #888888;
+
+    font-size: 11px;
+
+    line-height: 1.6;
+
+    text-align: right;
+}}
+
+
+/* ========================================================
+   SELECTION
+   ======================================================== */
+
+::selection {{
+    background: #111111;
+
+    color: #ffffff;
+}}
+
+
+/* ========================================================
+   SCROLLBAR
+   ======================================================== */
+
+::-webkit-scrollbar {{
+    width: 9px;
+}}
+
+::-webkit-scrollbar-track {{
+    background: #eeeeee;
+}}
+
+::-webkit-scrollbar-thumb {{
+    background: #999999;
+}}
+
+::-webkit-scrollbar-thumb:hover {{
+    background: #555555;
+}}
+
+
+/* ========================================================
+   RESPONSIVE — TABLET
+   ======================================================== */
+
+@media (
+    max-width: 1100px
+) {{
+
+    .main {{
+        grid-template-columns:
+            minmax(0, 1fr)
+            300px;
+
+        gap: 45px;
+    }}
+
+    .hero-title {{
+        font-size:
+            clamp(
+                46px,
+                7vw,
+                72px
+            );
+    }}
+
+    .hero-inner {{
+        padding-top: 62px;
+        padding-bottom: 58px;
+    }}
+
+    .article-section {{
+        grid-template-columns:
+            52px
+            minmax(0, 1fr);
+
+        gap: 20px;
+    }}
+
+}}
+
+
+/* ========================================================
+   RESPONSIVE — MOBILE
+   ======================================================== */
+
+@media (
+    max-width: 820px
+) {{
+
+    .topbar {{
+        height: 60px;
+    }}
+
+    .topbar-inner {{
+        width: min(
+            100% - 28px,
+            1440px
+        );
+    }}
+
+    .brand-subtitle {{
+        display: none;
+    }}
+
+    .evidence-badge {{
+        padding:
+            7px
+            9px;
+
+        font-size: 9px;
+    }}
+
+    .hero-inner {{
+        width: min(
+            100% - 28px,
+            1440px
+        );
+
+        padding:
+            52px
+            0
+            48px;
+    }}
+
+    .hero-title {{
+        font-size:
+            clamp(
+                42px,
+                12vw,
+                62px
+            );
+
+        line-height: 1;
+    }}
+
+    .hero-introduction {{
+        margin-top: 25px;
+
+        font-size: 19px;
+    }}
+
+    .main {{
+        width: min(
+            100% - 28px,
+            850px
+        );
+
+        display: block;
+
+        padding:
+            48px
+            0
+            70px;
+    }}
+
+    .article-column {{
+        max-width: none;
+    }}
+
+    .sidebar {{
+        position: static;
+
+        margin-top: 65px;
+    }}
+
+    .article-section {{
+        grid-template-columns:
+            1fr;
+
+        gap: 5px;
+
+        padding:
+            43px
+            0;
+    }}
+
+    .section-number {{
+        padding-top: 0;
+
+        margin-bottom: 5px;
+    }}
+
+    .section-content {{
+        font-size: 17px;
+
+        line-height: 1.8;
+    }}
+
+    .key-points {{
+        padding:
+            29px
+            26px;
+    }}
+
+    .conclusion {{
+        padding:
+            30px
+            26px;
+    }}
+
+    .footer-inner {{
+        width: min(
+            100% - 28px,
+            1440px
+        );
+
+        flex-direction: column;
+
+        align-items: flex-start;
+    }}
+
+    .footer-text {{
+        text-align: left;
+    }}
+
+}}
+
+
+/* ========================================================
+   RESPONSIVE — SMALL MOBILE
+   ======================================================== */
+
+@media (
+    max-width: 480px
+) {{
+
+    .brand-name {{
+        font-size: 17px;
+    }}
+
+    .hero-meta {{
+        font-size: 9px;
+    }}
+
+    .hero-title {{
+        font-size: 39px;
+    }}
+
+    .hero-query {{
+        display: block;
+
+        line-height: 1.6;
+    }}
+
+    .hero-query-label {{
+        display: block;
+
+        margin:
+            0
+            0
+            4px;
+    }}
+
+    .article-intro-text {{
+        font-size: 20px;
+    }}
+
+    .section-body h2 {{
+        font-size: 29px;
+    }}
+
+    .key-points h2 {{
+        font-size: 29px;
+    }}
+
+    .source-title {{
+        font-size: 19px;
+    }}
+
+}}
+
+
+/* ========================================================
+   PRINT
+   ======================================================== */
+
+@media print {{
+
+    body {{
+        background: #ffffff;
+    }}
+
+    .topbar {{
+        position: static;
+
+        background: #ffffff;
+
+        box-shadow: none;
+    }}
+
+    .hero,
+    .page {{
+        background: #ffffff;
+    }}
+
+    .hero-inner,
+    .main,
+    .footer-inner {{
+        width: 100%;
+
+        max-width: none;
+    }}
+
+    .main {{
+        display: block;
+
+        padding:
+            30px
+            0;
+    }}
+
+    .sidebar {{
+        position: static;
+
+        margin-top: 50px;
+    }}
+
+    .source-link {{
+        text-decoration: underline;
+    }}
+
+    .footer {{
+        background: #ffffff;
+
+        color: #111111;
+    }}
+
+    .footer-text {{
+        color: #555555;
+    }}
+
+    .footer-mark {{
+        background: #111111;
+
+        color: #ffffff;
+    }}
+
+    .key-points {{
+        color: #111111;
+
+        background: #ffffff;
+
+        border: 1px solid #111111;
+    }}
+
+    .key-points .section-eyebrow {{
+        color: #555555;
+    }}
+
+    .key-point {{
+        color: #222222;
+
+        border-color: #cccccc;
+    }}
+
+    .key-point-mark {{
+        background: #111111;
+    }}
+
+    .evidence-badge {{
+        background: #ffffff;
+    }}
+
+}}
+
+
+</style>
 
 </head>
 
 
 <body>
 
-    <div class="container">
+<div class="page">
 
-        <div class="brand-row">
 
-            <div class="brand">
+    <!-- ==================================================
+         TOP BAR
+         ================================================== -->
 
-                <div class="brand-mark">
+    <header class="topbar">
+
+        <div class="topbar-inner">
+
+            <a
+                href="#"
+                class="brand"
+                aria-label="TrustNews"
+            >
+
+                <span class="brand-mark">
                     TN
+                </span>
+
+                <span class="brand-name">
+                    TrustNews
+                </span>
+
+                <span class="brand-subtitle">
+                    Evidence Desk
+                </span>
+
+            </a>
+
+
+            <div class="topbar-right">
+
+                <div class="evidence-badge">
+
+                    <span class="evidence-dot"></span>
+
+                    Source grounded
+
                 </div>
 
-                TRUSTNEWS
-
-            </div>
-
-            <div class="article-label">
-                Source-Grounded Article
             </div>
 
         </div>
 
+    </header>
 
-        <article class="article">
 
-            <h1 class="article-title">
+
+    <!-- ==================================================
+         HERO
+         ================================================== -->
+
+    <section class="hero">
+
+        <div class="hero-inner">
+
+            <div class="hero-meta">
+
+                <span>
+                    TRUSTNEWS REPORT
+                </span>
+
+                <span class="hero-meta-line"></span>
+
+                <span>
+                    Evidence-based
+                </span>
+
+            </div>
+
+
+            <h1 class="hero-title">
                 {title}
             </h1>
 
 
-            <div class="article-meta">
-
-                <span>
-                    Generated on {generated_at}
-                </span>
-
-                <span class="meta-divider">
-                    •
-                </span>
-
-                <span>
-                    {source_count} sources
-                </span>
-
-            </div>
-
-
-            <div class="query-box">
-
-                <div class="query-label">
-                    Search Query
-                </div>
-
-                <div class="query-text">
-                    {safe_query}
-                </div>
-
-            </div>
-
-
-            <p class="introduction">
+            <p class="hero-introduction">
                 {introduction}
             </p>
 
 
-            {sections_html}
+            <div class="hero-query">
+
+                <span class="hero-query-label">
+                    Query
+                </span>
+
+                <span>
+                    {clean_query}
+                </span>
+
+            </div>
+
+        </div>
+
+    </section>
 
 
-            <section class="key-points">
 
-                <h2>
-                    Key Points
-                </h2>
+    <!-- ==================================================
+         MAIN CONTENT
+         ================================================== -->
 
-                <ul>
-                    {key_points_html}
-                </ul>
+    <main class="main">
+
+
+        <!-- =================================================
+             ARTICLE COLUMN
+             ================================================= -->
+
+        <article class="article-column">
+
+
+            <section class="article-intro">
+
+                <div class="article-intro-label">
+                    Article
+                </div>
+
+                <p class="article-intro-text">
+                    {introduction}
+                </p>
 
             </section>
 
 
+            {section_html}
+
+
+            {key_points_html}
+
+
+            <!-- =============================================
+                 CONCLUSION
+                 ============================================= -->
+
             <section class="conclusion">
 
-                <h2>
+                <div class="conclusion-label">
                     Conclusion
+                </div>
+
+                <h2>
+                    The takeaway
                 </h2>
 
                 <p>
@@ -961,57 +1998,100 @@ def build_article_html(
             </section>
 
 
-            <section class="sources">
-
-                <h2>
-                    Sources Used</h2>
-
-                <p class="sources-description">
-                    The following sources were retrieved
-                    through TrustNews semantic search.
-                </p>
-
-                <ul class="source-list">
-                    {sources_html}
-                </ul>
-
-            </section>
-
-
-            <div class="trust-footer">
-
-                <div class="trust-footer-icon">
-                    ✓
-                </div>
-
-                <div>
-
-                    <strong>
-                        TrustNews evidence notice
-                    </strong>
-
-                    This article was generated using
-                    news sources retrieved by TrustNews
-                    semantic search. Original source
-                    links are provided above.
-
-                </div>
-
-            </div>
-
         </article>
 
 
-        <div class="page-footer">
-            TrustNews · Semantic News Search
+
+        <!-- =================================================
+             SIDEBAR
+             ================================================= -->
+
+        <aside class="sidebar">
+
+
+            <div class="sidebar-heading">
+
+                <h2>
+                    Sources
+                </h2>
+
+                <span class="sidebar-count">
+                    {source_count}
+                </span>
+
+            </div>
+
+
+            <div class="sources-list">
+
+                {sources_html}
+
+            </div>
+
+
+            <div class="evidence-notice">
+
+                <div class="evidence-notice-title">
+                    Evidence note
+                </div>
+
+                <p class="evidence-notice-text">
+                    This article is generated from the retrieved
+                    sources shown here. Relevance scores indicate
+                    retrieval relevance and should not be interpreted
+                    as factual certainty or source credibility.
+                </p>
+
+            </div>
+
+
+        </aside>
+
+
+    </main>
+
+
+
+    <!-- ==================================================
+         FOOTER
+         ================================================== -->
+
+    <footer class="footer">
+
+        <div class="footer-inner">
+
+
+            <div class="footer-brand">
+
+                <span class="footer-mark">
+                    TN
+                </span>
+
+                <span class="footer-name">
+                    TrustNews
+                </span>
+
+            </div>
+
+
+            <div class="footer-text">
+
+                Evidence-grounded news article<br>
+
+                Generated from retrieved sources
+
+            </div>
+
+
         </div>
 
-    </div>
+    </footer>
+
+
+</div>
+
 
 </body>
 
 </html>
 """
-
-    return html
-

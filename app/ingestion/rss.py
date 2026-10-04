@@ -16,6 +16,11 @@ RSS_FEEDS = [
 
     # MIT News
     "https://news.mit.edu/rss/feed",
+
+    "https://openai.com/news/rss.xml",
+
+    "https://research.google/blog/rss/",
+    
 ]
 
 

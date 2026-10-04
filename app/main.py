@@ -24,9 +24,19 @@ from app.generation.html_exporter import (
     save_article_html
 )
 
+from app.schemas.retrieval import (
+    RetrievalRequest,
+    RetrievalResponse
+)
+
+from app.retrieval.retrieval_pipeline import (
+    RetrievalPipeline
+)
+
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
+retrieval_pipeline = RetrievalPipeline()
 
 # Create FastAPI application
 app = FastAPI(
@@ -83,52 +93,167 @@ def search(
         request.top_k
     )
 
-@app.post("/generate-article")
+@app.post(
+    "/generate-article",
+    response_model=GeneratedArticleResponse
+)
 def generate_article_endpoint(
-    request: GenerateArticleRequest
+    request: GenerateArticleRequest,
+    db: Session = Depends(get_db)
 ):
 
     try:
 
-        article = generate_article(
-            request.query,
-            [
-                result.model_dump()
-                for result in request.results
-            ]
+        # =====================================================
+        # 1. RETRIEVE + RERANK EVIDENCE
+        # =====================================================
+
+        retrieval_result = retrieval_pipeline.run(
+
+            db=db,
+
+            query=request.query,
+
+            top_k=request.top_k
         )
+
+
+        # =====================================================
+        # 2. CHECK EVIDENCE
+        # =====================================================
+
+        evidence = retrieval_result.get(
+            "results",
+            []
+        )
+
+
+        context = retrieval_result.get(
+            "context",
+            ""
+        )
+
+
+        if not evidence:
+
+            raise HTTPException(
+
+                status_code=404,
+
+                detail=(
+                    "No relevant evidence was found "
+                    "for the requested query."
+                )
+            )
+
+
+        # =====================================================
+        # 3. GENERATE ARTICLE
+        # =====================================================
+
+        article = generate_article(
+
+            query=request.query,
+
+            results=evidence,
+
+            context=context
+        )
+
+
+        # =====================================================
+        # 4. BUILD HTML
+        # =====================================================
 
         html = build_article_html(
+
             query=request.query,
+
             article=article,
-            sources=[
-                result.model_dump()
-                for result in request.results
-            ]
+
+            sources=evidence
         )
 
+
+        # =====================================================
+        # 5. SAVE HTML
+        # =====================================================
+
         file_path = save_article_html(
+
             query=request.query,
+
             html=html
         )
 
-        filename = file_path.replace("\\", "/").split("/")[-1]
+
+        filename = (
+
+            file_path
+            .replace("\\", "/")
+            .split("/")[-1]
+        )
+
+
+        # =====================================================
+        # 6. RETURN RESPONSE
+        # =====================================================
 
         return {
+
             "title": article.get(
                 "title",
                 "TrustNews Article"
             ),
+
             "query": request.query,
 
-            "html_file": f"/generated_articles/{filename}",
+            "normalized_query":
+                retrieval_result.get(
+                    "normalized_query",
+                    request.query
+                ),
 
-            "sources": [
-                result.model_dump()
-                for result in request.results
-            ]
+            "html_file":
+                f"/generated_articles/{filename}",
+
+            "sources": evidence
         }
-                
+
+
+    except HTTPException:
+
+        raise
+
+
+    except Exception as exc:
+
+        raise HTTPException(
+
+            status_code=500,
+
+            detail=str(exc)
+        )
+
+
+@app.post(
+    "/retrieve",
+    response_model=RetrievalResponse
+)
+def retrieve(
+    request: RetrievalRequest,
+    db: Session = Depends(get_db)
+):
+
+    try:
+
+        result = retrieval_pipeline.run(
+            db=db,
+            query=request.query,
+            top_k=request.top_k
+        )
+
+        return result
 
     except Exception as exc:
 
