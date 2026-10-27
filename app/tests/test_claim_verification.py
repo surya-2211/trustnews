@@ -147,7 +147,15 @@ class ClaimVerificationTests(unittest.TestCase):
         self.assertEqual(verification.claim_id, "claim_original")
         self.assertEqual(verification.supporting_evidence_ids, [12])
         self.assertEqual(verification.source_urls, [source["url"]])
+        self.assertEqual(
+            verification.source_references[0].evidence_index,
+            0,
+        )
         self.assertEqual(verification.source_references[0].faiss_id, 112)
+        self.assertEqual(
+            verification.source_references[0].content,
+            source["content"],
+        )
         self.assertEqual(verification.confidence, None)
 
     def test_refuted_verdict_records_contradicting_source(self):
@@ -368,6 +376,8 @@ class ClaimVerificationTests(unittest.TestCase):
         )
         self.assertIn('id="verify-claims-button"', html)
         self.assertIn('fetch("/verify-article"', html)
+        self.assertIn("Evidence passage", html)
+        self.assertIn("AI assessment, not a guarantee of truth", html)
         self.assertIn('"faiss_id": 101', html)
         self.assertIn('"published_at": "2026-10-01"', html)
         self.assertIn("The team began testing.", html)

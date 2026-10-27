@@ -17,6 +17,7 @@ class ExtractedClaim(BaseModel):
 
 
 class EvidenceReference(BaseModel):
+    evidence_index: Optional[int] = None
     chunk_id: Optional[int] = None
     faiss_id: Optional[int] = None
     title: str = ""

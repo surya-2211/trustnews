@@ -330,12 +330,12 @@ class ClaimVerificationOrchestrator:
             [*supporting_indexes, *contradicting_indexes]
         ))
         selected_evidence = [
-            evidence[index]
+            (index, evidence[index])
             for index in selected_indexes
         ]
         references = [
-            ClaimVerificationOrchestrator._reference(item)
-            for item in selected_evidence
+            ClaimVerificationOrchestrator._reference(item, index)
+            for index, item in selected_evidence
         ]
         supporting_ids = _available_evidence_ids(
             evidence,
@@ -360,17 +360,21 @@ class ClaimVerificationOrchestrator:
             source_urls=source_urls,
             source_references=references,
             evaluated_evidence=[
-                ClaimVerificationOrchestrator._reference(item)
-                for item in evidence
+                ClaimVerificationOrchestrator._reference(item, index)
+                for index, item in enumerate(evidence)
             ],
             retrieval_attempts=attempts,
             further_retrieval_recommended=further_retrieval,
         )
 
     @staticmethod
-    def _reference(item: dict[str, Any]) -> EvidenceReference:
+    def _reference(
+        item: dict[str, Any],
+        evidence_index: Optional[int] = None,
+    ) -> EvidenceReference:
         published_at = item.get("published_at")
         return EvidenceReference(
+            evidence_index=evidence_index,
             chunk_id=_optional_int(item.get("id")),
             faiss_id=_optional_int(item.get("faiss_id")),
             title=str(item.get("title") or ""),

@@ -50,12 +50,40 @@ VERIFICATION_SCRIPT = r"""
             explanation.textContent = result.explanation;
             card.appendChild(explanation);
 
+            const evidenceNote = document.createElement("p");
+            evidenceNote.className = "verification-evidence-note";
+            evidenceNote.textContent =
+                "AI assessment, not a guarantee of truth. Passage numbers " +
+                "start at 1 for each claim; review the cited text and source.";
+            card.appendChild(evidenceNote);
+
             if (result.source_references.length) {
                 const sources = document.createElement("ul");
                 sources.className = "verification-source-list";
 
                 for (const source of result.source_references) {
                     const item = document.createElement("li");
+                    const passageNumber = Number.isInteger(source.evidence_index)
+                        ? source.evidence_index + 1
+                        : null;
+                    const passageLabel = document.createElement("strong");
+                    const sourceId = source.chunk_id ?? source.faiss_id;
+                    const isSupporting = result.supporting_evidence_ids
+                        .includes(sourceId);
+                    const isContradicting = result.contradicting_evidence_ids
+                        .includes(sourceId);
+                    const relationship = isSupporting && isContradicting
+                        ? "Supports and contradicts"
+                        : isSupporting
+                            ? "Supports claim"
+                            : isContradicting
+                                ? "Contradicts claim"
+                                : "Referenced evidence";
+                    passageLabel.textContent = passageNumber === null
+                        ? "Referenced evidence"
+                        : `Evidence passage ${passageNumber} · ${relationship}`;
+                    item.appendChild(passageLabel);
+
                     const link = document.createElement("a");
                     link.textContent = source.title || source.source || source.url;
 
@@ -68,6 +96,13 @@ VERIFICATION_SCRIPT = r"""
                     }
 
                     item.appendChild(link);
+
+                    if (source.content) {
+                        const excerpt = document.createElement("p");
+                        excerpt.textContent = source.content;
+                        item.appendChild(excerpt);
+                    }
+
                     sources.appendChild(item);
                 }
 

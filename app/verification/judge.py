@@ -65,6 +65,12 @@ SUPPORTED. Preserve relevant contradictory evidence. Do not use majority
 voting alone; consider directness, source context, dates, and whether reports
 may repeat the same original source.
 
+For SUPPORTED, the cited passages must directly substantiate every material
+part of the claim. Do not treat the article text, a source title, or retrieval
+relevance as confirmation. When evidence is indirect, incomplete, or
+ambiguous, choose NOT_ENOUGH_EVIDENCE. Do not infer support merely because
+no contradiction was found.
+
 Choose exactly one verdict:
 - SUPPORTED: relevant evidence adequately supports the whole claim.
 - REFUTED: relevant evidence adequately contradicts the whole claim.
