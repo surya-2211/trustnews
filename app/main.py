@@ -1,7 +1,9 @@
+import logging
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from fastapi.staticfiles import StaticFiles
+from google.genai.errors import APIError as GeminiAPIError
 
 from app.database import Base, engine, get_db
 from app.schemas import QueryRequest
@@ -13,6 +15,7 @@ from app.schemas.article import (
 )
 
 from app.generation.article_generator import (
+    GEMINI_MODEL,
     generate_article
 )
 
@@ -32,6 +35,15 @@ from app.schemas.retrieval import (
 from app.retrieval.retrieval_pipeline import (
     RetrievalPipeline
 )
+from app.verification.claim_extractor import extract_claims
+from app.verification.errors import map_gemini_error
+from app.verification.orchestrator import ClaimVerificationOrchestrator
+from app.verification.schemas import (
+    ArticleVerificationResponse,
+    VerificationRequest,
+)
+
+logger = logging.getLogger(__name__)
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -226,6 +238,16 @@ def generate_article_endpoint(
         raise
 
 
+    except GeminiAPIError as exc:
+
+        logger.warning(
+            "Gemini article generation API error: status=%s model=%s",
+            exc.code,
+            GEMINI_MODEL,
+        )
+        raise map_gemini_error(exc, GEMINI_MODEL) from exc
+
+
     except Exception as exc:
 
         raise HTTPException(
@@ -261,3 +283,49 @@ def retrieve(
             status_code=500,
             detail=str(exc)
         )
+
+
+@app.post(
+    "/verify-article",
+    response_model=ArticleVerificationResponse
+)
+def verify_article_endpoint(
+    request: VerificationRequest,
+    db: Session = Depends(get_db)
+):
+    try:
+        claims = extract_claims(request.article_text)
+        orchestrator = ClaimVerificationOrchestrator(
+            retrieval_pipeline=retrieval_pipeline,
+            top_k=request.top_k,
+            max_retries=request.max_retries,
+        )
+
+        return orchestrator.verify(
+            claims=claims,
+            initial_evidence=request.sources,
+            db=db,
+            article_id=request.article_id,
+        )
+    except GeminiAPIError as exc:
+        logger.warning(
+            "Gemini verification API error: status=%s model=%s",
+            exc.code,
+            GEMINI_MODEL,
+        )
+        raise map_gemini_error(exc, GEMINI_MODEL) from exc
+    except RuntimeError as exc:
+        logger.exception("Claim verification failed due to an invalid response.")
+        raise HTTPException(
+            status_code=502,
+            detail=f"Claim verification could not process a model response: {exc}",
+        ) from exc
+    except Exception as exc:
+        logger.exception("Unexpected claim verification failure.")
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Claim verification failed unexpectedly. Check the backend "
+                "log for the detailed error."
+            ),
+        ) from exc

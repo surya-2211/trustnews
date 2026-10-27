@@ -1,4 +1,5 @@
 from html import escape
+import json
 from typing import Dict, List
 
 
@@ -6,6 +7,119 @@ from typing import Dict, List
 # TRUSTNEWS ARTICLE TEMPLATE
 # Black & White Editorial UI
 # =========================================================
+
+VERIFICATION_SCRIPT = r"""
+<script>
+(() => {
+    const button = document.getElementById("verify-claims-button");
+    const status = document.getElementById("verification-status");
+    const resultsContainer = document.getElementById("verification-results");
+    const sourcesElement = document.getElementById("verification-sources");
+
+    if (!button || !status || !resultsContainer || !sourcesElement) {
+        return;
+    }
+
+    function renderVerification(data) {
+        resultsContainer.replaceChildren();
+
+        const summary = document.createElement("p");
+        summary.className = "verification-summary";
+        summary.textContent =
+            `${data.summary.total_claims} claims checked: ` +
+            `${data.summary.supported} supported, ` +
+            `${data.summary.refuted} refuted, ` +
+            `${data.summary.conflicting_evidence} conflicting, ` +
+            `${data.summary.not_enough_evidence} insufficient evidence.`;
+        resultsContainer.appendChild(summary);
+
+        for (const result of data.verification_results) {
+            const card = document.createElement("article");
+            card.className = "verification-claim";
+
+            const heading = document.createElement("h3");
+            heading.textContent = `${result.verdict.replaceAll("_", " ")} · ${result.claim_id}`;
+            card.appendChild(heading);
+
+            const claim = document.createElement("p");
+            claim.className = "verification-claim-text";
+            claim.textContent = result.claim_text;
+            card.appendChild(claim);
+
+            const explanation = document.createElement("p");
+            explanation.textContent = result.explanation;
+            card.appendChild(explanation);
+
+            if (result.source_references.length) {
+                const sources = document.createElement("ul");
+                sources.className = "verification-source-list";
+
+                for (const source of result.source_references) {
+                    const item = document.createElement("li");
+                    const link = document.createElement("a");
+                    link.textContent = source.title || source.source || source.url;
+
+                    if (/^https?:\/\//i.test(source.url)) {
+                        link.href = source.url;
+                        link.target = "_blank";
+                        link.rel = "noopener noreferrer";
+                    } else {
+                        link.removeAttribute("href");
+                    }
+
+                    item.appendChild(link);
+                    sources.appendChild(item);
+                }
+
+                card.appendChild(sources);
+            }
+
+            resultsContainer.appendChild(card);
+        }
+    }
+
+    button.addEventListener("click", async () => {
+        button.disabled = true;
+        status.textContent = "Extracting and checking article claims…";
+        resultsContainer.replaceChildren();
+
+        try {
+            const articleText = [
+                document.querySelector(".hero-title")?.innerText || "",
+                Array.from(document.querySelectorAll(
+                    ".article-intro-text, .article-section, .key-points, .conclusion"
+                )).map((element) => element.innerText).join("\n")
+            ].join("\n\n").trim();
+            const sources = JSON.parse(sourcesElement.textContent || "[]");
+            const response = await fetch("/verify-article", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    article_text: articleText,
+                    sources,
+                    top_k: 10,
+                    max_retries: 2
+                })
+            });
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.detail || `Request failed (${response.status})`);
+            }
+
+            renderVerification(data);
+            status.textContent = data.summary.total_claims
+                ? "Claim verification complete."
+                : "No factual claims were extracted from this article.";
+        } catch (error) {
+            status.textContent = error.message || "Unable to verify article claims.";
+        } finally {
+            button.disabled = false;
+        }
+    });
+})();
+</script>
+"""
 
 
 def safe_text(value) -> str:
@@ -416,6 +530,18 @@ def build_article_html(
 
     sources_html = build_source_list(
         sources
+    )
+
+    verification_sources = json.dumps(
+        sources,
+        ensure_ascii=False,
+        default=str,
+    )
+    verification_sources = (
+        verification_sources
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+        .replace("&", "\\u0026")
     )
 
     # =====================================================
@@ -1477,6 +1603,64 @@ a {{
     text-align: right;
 }}
 
+.verification-panel {{
+    margin: 48px 0;
+    padding: 28px;
+    border: 1px solid #d7d7d7;
+    background: #ffffff;
+}}
+
+.verification-panel h2 {{
+    margin: 0 0 8px;
+    font-family: Georgia, "Times New Roman", serif;
+}}
+
+.verification-button {{
+    border: 0;
+    padding: 12px 18px;
+    background: #111111;
+    color: #ffffff;
+    font-weight: 700;
+    cursor: pointer;
+}}
+
+.verification-button:disabled {{
+    opacity: 0.6;
+    cursor: wait;
+}}
+
+.verification-status {{
+    color: #555555;
+}}
+
+.verification-claim {{
+    margin-top: 18px;
+    padding: 18px;
+    border: 1px solid #dedede;
+}}
+
+.verification-claim h3 {{
+    margin: 0;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+}}
+
+.verification-claim-text {{
+    font-weight: 650;
+}}
+
+.verification-source-list {{
+    padding-left: 20px;
+}}
+
+.verification-source-list a {{
+    text-decoration: underline;
+}}
+
+.verification-summary {{
+    font-weight: 700;
+}}
+
 
 /* ========================================================
    SELECTION
@@ -1976,6 +2160,16 @@ a {{
 
             {key_points_html}
 
+            <section class="verification-panel" aria-labelledby="verification-heading">
+                <h2 id="verification-heading">Check the article's claims</h2>
+                <p>Extract factual claims and compare them with the article's sources and additional retrieved evidence.</p>
+                <button class="verification-button" id="verify-claims-button" type="button">
+                    Extract and verify claims
+                </button>
+                <p class="verification-status" id="verification-status" role="status" aria-live="polite"></p>
+                <div id="verification-results" aria-live="polite"></div>
+            </section>
+
 
             <!-- =============================================
                  CONCLUSION
@@ -2090,6 +2284,8 @@ a {{
 
 </div>
 
+<script type="application/json" id="verification-sources">{verification_sources}</script>
+{VERIFICATION_SCRIPT}
 
 </body>
 

@@ -1,5 +1,6 @@
+from datetime import datetime
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 
 class RetrievalRequest(BaseModel):
@@ -18,6 +19,8 @@ class RetrievalResult(BaseModel):
     source: str = ""
 
     url: str = ""
+
+    published_at: Optional[datetime] = None
 
     content: str
 

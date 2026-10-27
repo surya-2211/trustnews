@@ -95,6 +95,13 @@ def fetch_chunks(
                     ""
                 ),
 
+            "published_at":
+                getattr(
+                    row,
+                    "published_at",
+                    None
+                ),
+
             "content":
                 row.chunk_text,
 

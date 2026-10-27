@@ -6,6 +6,7 @@ from typing import Dict, List, Optional
 
 from dotenv import load_dotenv
 from google import genai
+from google.genai.errors import APIError
 from google.genai import types
 
 load_dotenv()
@@ -19,7 +20,10 @@ if not GEMINI_API_KEY:
     )
 
 
-GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_MODEL = os.getenv(
+    "GEMINI_MODEL",
+    "gemini-2.5-flash"
+)
 
 client = genai.Client(
     api_key=GEMINI_API_KEY
@@ -639,6 +643,15 @@ def generate_article(
         except Exception as exc:
 
             last_exception = exc
+
+            if isinstance(exc, APIError) and exc.code in (
+                400,
+                401,
+                403,
+                404,
+                429,
+            ):
+                raise
 
             print(
                 f"Gemini request failed: {exc}"
