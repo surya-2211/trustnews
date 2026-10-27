@@ -1,0 +1,2085 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="description"
+    content="mars rover — TrustNews evidence-grounded news article."
+>
+
+<title>
+    NASA Mars Rovers Reach New Exploration Milestones — TrustNews
+</title>
+
+
+<style>
+
+/* ========================================================
+   RESET
+   ======================================================== */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+
+    background: #f5f5f5;
+
+    color: #111111;
+
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Helvetica,
+        Arial,
+        sans-serif;
+
+    line-height: 1.7;
+
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+a {
+    color: inherit;
+}
+
+button,
+a {
+    -webkit-tap-highlight-color: transparent;
+}
+
+
+/* ========================================================
+   PAGE
+   ======================================================== */
+
+.page {
+    min-height: 100vh;
+    background: #f5f5f5;
+}
+
+
+/* ========================================================
+   TOP NAVIGATION
+   ======================================================== */
+
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+
+    height: 68px;
+
+    background: rgba(255, 255, 255, 0.96);
+
+    border-bottom: 1px solid #d9d9d9;
+
+    backdrop-filter: blur(12px);
+}
+
+.topbar-inner {
+    width: min(
+        1440px,
+        calc(100% - 48px)
+    );
+
+    height: 100%;
+
+    margin: 0 auto;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+}
+
+.brand {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    text-decoration: none;
+}
+
+.brand-mark {
+    width: 34px;
+    height: 34px;
+
+    background: #111111;
+
+    color: #ffffff;
+
+    display: grid;
+
+    place-items: center;
+
+    font-size: 15px;
+
+    font-weight: 900;
+
+    letter-spacing: -0.04em;
+}
+
+.brand-name {
+    font-size: 19px;
+
+    font-weight: 850;
+
+    letter-spacing: -0.04em;
+}
+
+.brand-subtitle {
+    color: #777777;
+
+    font-size: 11px;
+
+    font-weight: 650;
+
+    letter-spacing: 0.08em;
+
+    text-transform: uppercase;
+
+    border-left: 1px solid #cccccc;
+
+    padding-left: 12px;
+
+    margin-left: 2px;
+}
+
+.topbar-right {
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+}
+
+.evidence-badge {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 8px 12px;
+
+    border: 1px solid #d3d3d3;
+
+    background: #fafafa;
+
+    color: #333333;
+
+    font-size: 11px;
+
+    font-weight: 750;
+
+    letter-spacing: 0.07em;
+
+    text-transform: uppercase;
+}
+
+.evidence-dot {
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+
+    background: #111111;
+}
+
+
+/* ========================================================
+   HERO
+   ======================================================== */
+
+.hero {
+    background: #ffffff;
+
+    border-bottom: 1px solid #d7d7d7;
+}
+
+.hero-inner {
+    width: min(
+        1440px,
+        calc(100% - 48px)
+    );
+
+    margin: 0 auto;
+
+    padding:
+        78px
+        0
+        72px;
+}
+
+.hero-meta {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    margin-bottom: 28px;
+
+    color: #666666;
+
+    font-size: 11px;
+
+    font-weight: 750;
+
+    letter-spacing: 0.12em;
+
+    text-transform: uppercase;
+}
+
+.hero-meta-line {
+    width: 38px;
+    height: 1px;
+
+    background: #111111;
+}
+
+.hero-title {
+    max-width: 1120px;
+
+    margin: 0;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size:
+        clamp(
+            48px,
+            6vw,
+            88px
+        );
+
+    line-height: 0.98;
+
+    letter-spacing: -0.055em;
+
+    font-weight: 700;
+
+    color: #0c0c0c;
+}
+
+.hero-introduction {
+    max-width: 900px;
+
+    margin:
+        34px
+        0
+        0;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size:
+        clamp(
+            20px,
+            2vw,
+            27px
+        );
+
+    line-height: 1.55;
+
+    color: #454545;
+}
+
+.hero-query {
+    display: inline-flex;
+
+    align-items: center;
+
+    max-width: 100%;
+
+    margin-top: 38px;
+
+    padding: 11px 14px;
+
+    border: 1px solid #d4d4d4;
+
+    background: #fafafa;
+
+    color: #555555;
+
+    font-size: 12px;
+
+    font-weight: 650;
+
+    overflow-wrap: anywhere;
+}
+
+.hero-query-label {
+    margin-right: 8px;
+
+    color: #111111;
+
+    font-weight: 800;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.08em;
+}
+
+
+/* ========================================================
+   MAIN LAYOUT
+   ======================================================== */
+
+.main {
+    width: min(
+        1440px,
+        calc(100% - 48px)
+    );
+
+    margin: 0 auto;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        360px;
+
+    gap: 72px;
+
+    align-items: start;
+
+    padding:
+        72px
+        0
+        100px;
+}
+
+
+/* ========================================================
+   ARTICLE
+   ======================================================== */
+
+.article-column {
+    min-width: 0;
+
+    max-width: 850px;
+}
+
+.article-intro {
+    padding-bottom: 44px;
+
+    margin-bottom: 12px;
+
+    border-bottom: 1px solid #d5d5d5;
+}
+
+.article-intro-label {
+    margin-bottom: 14px;
+
+    color: #777777;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.14em;
+
+    text-transform: uppercase;
+}
+
+.article-intro-text {
+    margin: 0;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 23px;
+
+    line-height: 1.7;
+
+    color: #222222;
+}
+
+
+/* ========================================================
+   ARTICLE SECTION
+   ======================================================== */
+
+.article-section {
+    position: relative;
+
+    display: grid;
+
+    grid-template-columns: 70px minmax(0, 1fr);
+
+    gap: 28px;
+
+    padding:
+        58px
+        0;
+
+    border-bottom: 1px solid #dedede;
+}
+
+.section-number {
+    padding-top: 5px;
+
+    color: #a0a0a0;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 18px;
+
+    font-weight: 700;
+}
+
+.section-body {
+    min-width: 0;
+}
+
+.section-eyebrow {
+    margin-bottom: 11px;
+
+    color: #777777;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.14em;
+
+    text-transform: uppercase;
+}
+
+.section-body h2 {
+    margin:
+        0
+        0
+        20px;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size:
+        clamp(
+            28px,
+            3vw,
+            40px
+        );
+
+    line-height: 1.12;
+
+    letter-spacing: -0.035em;
+
+    color: #111111;
+}
+
+.section-content {
+    white-space: pre-line;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 18px;
+
+    line-height: 1.9;
+
+    color: #303030;
+}
+
+.section-content::first-letter {
+    font-size: 1.2em;
+}
+
+
+/* ========================================================
+   KEY POINTS
+   ======================================================== */
+
+.key-points {
+    margin-top: 58px;
+
+    padding:
+        34px
+        36px
+        38px;
+
+    background: #111111;
+
+    color: #ffffff;
+}
+
+.key-points .section-eyebrow {
+    color: #999999;
+}
+
+.key-points h2 {
+    margin:
+        0
+        0
+        24px;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 34px;
+
+    line-height: 1.15;
+
+    letter-spacing: -0.03em;
+
+    font-weight: 700;
+}
+
+.key-points ul {
+    list-style: none;
+
+    margin: 0;
+
+    padding: 0;
+}
+
+.key-point {
+    display: grid;
+
+    grid-template-columns: 12px minmax(0, 1fr);
+
+    gap: 14px;
+
+    padding: 17px 0;
+
+    border-top: 1px solid #333333;
+
+    color: #eeeeee;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 16px;
+
+    line-height: 1.65;
+}
+
+.key-point:last-child {
+    border-bottom: 1px solid #333333;
+}
+
+.key-point-mark {
+    width: 7px;
+    height: 7px;
+
+    margin-top: 9px;
+
+    background: #ffffff;
+}
+
+
+/* ========================================================
+   CONCLUSION
+   ======================================================== */
+
+.conclusion {
+    margin-top: 58px;
+
+    padding:
+        42px
+        44px;
+
+    background: #ffffff;
+
+    border:
+        1px
+        solid
+        #cfcfcf;
+
+    border-left:
+        5px
+        solid
+        #111111;
+}
+
+.conclusion-label {
+    margin-bottom: 14px;
+
+    color: #777777;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.14em;
+
+    text-transform: uppercase;
+}
+
+.conclusion h2 {
+    margin:
+        0
+        0
+        18px;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 34px;
+
+    line-height: 1.1;
+
+    letter-spacing: -0.035em;
+}
+
+.conclusion p {
+    margin: 0;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 18px;
+
+    line-height: 1.85;
+
+    color: #333333;
+}
+
+
+/* ========================================================
+   SIDEBAR
+   ======================================================== */
+
+.sidebar {
+    position: sticky;
+
+    top: 92px;
+
+    min-width: 0;
+}
+
+.sidebar-heading {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    padding-bottom: 16px;
+
+    border-bottom: 2px solid #111111;
+}
+
+.sidebar-heading h2 {
+    margin: 0;
+
+    font-size: 13px;
+
+    font-weight: 850;
+
+    letter-spacing: 0.09em;
+
+    text-transform: uppercase;
+}
+
+.sidebar-count {
+    display: inline-flex;
+
+    min-width: 27px;
+    height: 27px;
+
+    padding: 0 8px;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background: #111111;
+
+    color: #ffffff;
+
+    font-size: 11px;
+
+    font-weight: 800;
+}
+
+.sources-list {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 0;
+}
+
+
+/* ========================================================
+   SOURCE CARD
+   ======================================================== */
+
+.source-card {
+    position: relative;
+
+    padding:
+        26px
+        0
+        28px;
+
+    border-bottom: 1px solid #d6d6d6;
+}
+
+.source-card-top {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin-bottom: 17px;
+}
+
+.source-number {
+    color: #999999;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 15px;
+
+    font-weight: 700;
+}
+
+.source-label {
+    color: #777777;
+
+    font-size: 9px;
+
+    font-weight: 850;
+
+    letter-spacing: 0.13em;
+}
+
+.source-title {
+    margin:
+        0
+        0
+        8px;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 21px;
+
+    line-height: 1.25;
+
+    letter-spacing: -0.025em;
+
+    color: #111111;
+}
+
+.source-publisher {
+    margin-bottom: 13px;
+
+    color: #555555;
+
+    font-size: 11px;
+
+    font-weight: 750;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.07em;
+}
+
+.source-preview {
+    margin:
+        0
+        0
+        18px;
+
+    color: #666666;
+
+    font-size: 13px;
+
+    line-height: 1.7;
+}
+
+.source-metrics {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    border-top: 1px solid #dddddd;
+
+    border-bottom: 1px solid #dddddd;
+
+    margin-bottom: 18px;
+}
+
+.source-metric {
+    padding:
+        11px
+        0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.source-metric + .source-metric {
+    border-left: 1px solid #dddddd;
+
+    padding-left: 14px;
+}
+
+.metric-label {
+    color: #999999;
+
+    font-size: 8px;
+
+    font-weight: 850;
+
+    letter-spacing: 0.12em;
+}
+
+.source-metric strong {
+    color: #111111;
+
+    font-size: 14px;
+
+    font-weight: 850;
+}
+
+.source-link {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    color: #111111;
+
+    font-size: 11px;
+
+    font-weight: 800;
+
+    text-decoration: none;
+
+    border-bottom: 1px solid #111111;
+
+    padding-bottom: 2px;
+
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease;
+}
+
+.source-link:hover {
+    opacity: 0.55;
+
+    transform: translateX(2px);
+}
+
+.empty-sources {
+    padding:
+        25px
+        0;
+
+    color: #777777;
+
+    font-size: 13px;
+}
+
+
+/* ========================================================
+   EVIDENCE NOTICE
+   ======================================================== */
+
+.evidence-notice {
+    margin-top: 28px;
+
+    padding:
+        20px
+        20px;
+
+    background: #eeeeee;
+
+    border: 1px solid #d6d6d6;
+}
+
+.evidence-notice-title {
+    margin-bottom: 7px;
+
+    color: #111111;
+
+    font-size: 10px;
+
+    font-weight: 850;
+
+    letter-spacing: 0.11em;
+
+    text-transform: uppercase;
+}
+
+.evidence-notice-text {
+    margin: 0;
+
+    color: #666666;
+
+    font-size: 12px;
+
+    line-height: 1.65;
+}
+
+
+/* ========================================================
+   FOOTER
+   ======================================================== */
+
+.footer {
+    border-top: 1px solid #cfcfcf;
+
+    background: #111111;
+
+    color: #ffffff;
+}
+
+.footer-inner {
+    width: min(
+        1440px,
+        calc(100% - 48px)
+    );
+
+    margin: 0 auto;
+
+    padding:
+        44px
+        0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 30px;
+}
+
+.footer-brand {
+    display: flex;
+
+    align-items: center;
+
+    gap: 11px;
+}
+
+.footer-mark {
+    width: 29px;
+    height: 29px;
+
+    background: #ffffff;
+
+    color: #111111;
+
+    display: grid;
+
+    place-items: center;
+
+    font-size: 12px;
+
+    font-weight: 900;
+}
+
+.footer-name {
+    font-size: 14px;
+
+    font-weight: 800;
+
+    letter-spacing: -0.02em;
+}
+
+.footer-text {
+    color: #888888;
+
+    font-size: 11px;
+
+    line-height: 1.6;
+
+    text-align: right;
+}
+
+.verification-panel {
+    margin: 48px 0;
+    padding: 28px;
+    border: 1px solid #d7d7d7;
+    background: #ffffff;
+}
+
+.verification-panel h2 {
+    margin: 0 0 8px;
+    font-family: Georgia, "Times New Roman", serif;
+}
+
+.verification-button {
+    border: 0;
+    padding: 12px 18px;
+    background: #111111;
+    color: #ffffff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.verification-button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.verification-status {
+    color: #555555;
+}
+
+.verification-claim {
+    margin-top: 18px;
+    padding: 18px;
+    border: 1px solid #dedede;
+}
+
+.verification-claim h3 {
+    margin: 0;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+}
+
+.verification-claim-text {
+    font-weight: 650;
+}
+
+.verification-source-list {
+    padding-left: 20px;
+}
+
+.verification-source-list a {
+    text-decoration: underline;
+}
+
+.verification-summary {
+    font-weight: 700;
+}
+
+
+/* ========================================================
+   SELECTION
+   ======================================================== */
+
+::selection {
+    background: #111111;
+
+    color: #ffffff;
+}
+
+
+/* ========================================================
+   SCROLLBAR
+   ======================================================== */
+
+::-webkit-scrollbar {
+    width: 9px;
+}
+
+::-webkit-scrollbar-track {
+    background: #eeeeee;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #999999;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555555;
+}
+
+
+/* ========================================================
+   RESPONSIVE — TABLET
+   ======================================================== */
+
+@media (
+    max-width: 1100px
+) {
+
+    .main {
+        grid-template-columns:
+            minmax(0, 1fr)
+            300px;
+
+        gap: 45px;
+    }
+
+    .hero-title {
+        font-size:
+            clamp(
+                46px,
+                7vw,
+                72px
+            );
+    }
+
+    .hero-inner {
+        padding-top: 62px;
+        padding-bottom: 58px;
+    }
+
+    .article-section {
+        grid-template-columns:
+            52px
+            minmax(0, 1fr);
+
+        gap: 20px;
+    }
+
+}
+
+
+/* ========================================================
+   RESPONSIVE — MOBILE
+   ======================================================== */
+
+@media (
+    max-width: 820px
+) {
+
+    .topbar {
+        height: 60px;
+    }
+
+    .topbar-inner {
+        width: min(
+            100% - 28px,
+            1440px
+        );
+    }
+
+    .brand-subtitle {
+        display: none;
+    }
+
+    .evidence-badge {
+        padding:
+            7px
+            9px;
+
+        font-size: 9px;
+    }
+
+    .hero-inner {
+        width: min(
+            100% - 28px,
+            1440px
+        );
+
+        padding:
+            52px
+            0
+            48px;
+    }
+
+    .hero-title {
+        font-size:
+            clamp(
+                42px,
+                12vw,
+                62px
+            );
+
+        line-height: 1;
+    }
+
+    .hero-introduction {
+        margin-top: 25px;
+
+        font-size: 19px;
+    }
+
+    .main {
+        width: min(
+            100% - 28px,
+            850px
+        );
+
+        display: block;
+
+        padding:
+            48px
+            0
+            70px;
+    }
+
+    .article-column {
+        max-width: none;
+    }
+
+    .sidebar {
+        position: static;
+
+        margin-top: 65px;
+    }
+
+    .article-section {
+        grid-template-columns:
+            1fr;
+
+        gap: 5px;
+
+        padding:
+            43px
+            0;
+    }
+
+    .section-number {
+        padding-top: 0;
+
+        margin-bottom: 5px;
+    }
+
+    .section-content {
+        font-size: 17px;
+
+        line-height: 1.8;
+    }
+
+    .key-points {
+        padding:
+            29px
+            26px;
+    }
+
+    .conclusion {
+        padding:
+            30px
+            26px;
+    }
+
+    .footer-inner {
+        width: min(
+            100% - 28px,
+            1440px
+        );
+
+        flex-direction: column;
+
+        align-items: flex-start;
+    }
+
+    .footer-text {
+        text-align: left;
+    }
+
+}
+
+
+/* ========================================================
+   RESPONSIVE — SMALL MOBILE
+   ======================================================== */
+
+@media (
+    max-width: 480px
+) {
+
+    .brand-name {
+        font-size: 17px;
+    }
+
+    .hero-meta {
+        font-size: 9px;
+    }
+
+    .hero-title {
+        font-size: 39px;
+    }
+
+    .hero-query {
+        display: block;
+
+        line-height: 1.6;
+    }
+
+    .hero-query-label {
+        display: block;
+
+        margin:
+            0
+            0
+            4px;
+    }
+
+    .article-intro-text {
+        font-size: 20px;
+    }
+
+    .section-body h2 {
+        font-size: 29px;
+    }
+
+    .key-points h2 {
+        font-size: 29px;
+    }
+
+    .source-title {
+        font-size: 19px;
+    }
+
+}
+
+
+/* ========================================================
+   PRINT
+   ======================================================== */
+
+@media print {
+
+    body {
+        background: #ffffff;
+    }
+
+    .topbar {
+        position: static;
+
+        background: #ffffff;
+
+        box-shadow: none;
+    }
+
+    .hero,
+    .page {
+        background: #ffffff;
+    }
+
+    .hero-inner,
+    .main,
+    .footer-inner {
+        width: 100%;
+
+        max-width: none;
+    }
+
+    .main {
+        display: block;
+
+        padding:
+            30px
+            0;
+    }
+
+    .sidebar {
+        position: static;
+
+        margin-top: 50px;
+    }
+
+    .source-link {
+        text-decoration: underline;
+    }
+
+    .footer {
+        background: #ffffff;
+
+        color: #111111;
+    }
+
+    .footer-text {
+        color: #555555;
+    }
+
+    .footer-mark {
+        background: #111111;
+
+        color: #ffffff;
+    }
+
+    .key-points {
+        color: #111111;
+
+        background: #ffffff;
+
+        border: 1px solid #111111;
+    }
+
+    .key-points .section-eyebrow {
+        color: #555555;
+    }
+
+    .key-point {
+        color: #222222;
+
+        border-color: #cccccc;
+    }
+
+    .key-point-mark {
+        background: #111111;
+    }
+
+    .evidence-badge {
+        background: #ffffff;
+    }
+
+}
+
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="page">
+
+
+    <!-- ==================================================
+         TOP BAR
+         ================================================== -->
+
+    <header class="topbar">
+
+        <div class="topbar-inner">
+
+            <a
+                href="#"
+                class="brand"
+                aria-label="TrustNews"
+            >
+
+                <span class="brand-mark">
+                    TN
+                </span>
+
+                <span class="brand-name">
+                    TrustNews
+                </span>
+
+                <span class="brand-subtitle">
+                    Evidence Desk
+                </span>
+
+            </a>
+
+
+            <div class="topbar-right">
+
+                <div class="evidence-badge">
+
+                    <span class="evidence-dot"></span>
+
+                    Source grounded
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- ==================================================
+         HERO
+         ================================================== -->
+
+    <section class="hero">
+
+        <div class="hero-inner">
+
+            <div class="hero-meta">
+
+                <span>
+                    TRUSTNEWS REPORT
+                </span>
+
+                <span class="hero-meta-line"></span>
+
+                <span>
+                    Evidence-based
+                </span>
+
+            </div>
+
+
+            <h1 class="hero-title">
+                NASA Mars Rovers Reach New Exploration Milestones
+            </h1>
+
+
+            <p class="hero-introduction">
+                NASA&#x27;s Mars rovers, Perseverance and Curiosity, continue to advance scientific exploration on the Red Planet. Perseverance has recently broken the all-time off-world driving record, while Curiosity has captured detailed views of mysterious cliff formations that scientists prepare to study further.
+            </p>
+
+
+            <div class="hero-query">
+
+                <span class="hero-query-label">
+                    Query
+                </span>
+
+                <span>
+                    mars rover
+                </span>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ==================================================
+         MAIN CONTENT
+         ================================================== -->
+
+    <main class="main">
+
+
+        <!-- =================================================
+             ARTICLE COLUMN
+             ================================================= -->
+
+        <article class="article-column">
+
+
+            <section class="article-intro">
+
+                <div class="article-intro-label">
+                    Article
+                </div>
+
+                <p class="article-intro-text">
+                    NASA&#x27;s Mars rovers, Perseverance and Curiosity, continue to advance scientific exploration on the Red Planet. Perseverance has recently broken the all-time off-world driving record, while Curiosity has captured detailed views of mysterious cliff formations that scientists prepare to study further.
+                </p>
+
+            </section>
+
+
+            
+            <section
+                class="article-section"
+                id="section-1"
+            >
+
+                <div class="section-number">
+                    01
+                </div>
+
+                <div class="section-body">
+
+                    <div class="section-eyebrow">
+                        SECTION 01
+                    </div>
+
+                    <h2>
+                        Perseverance Breaks Off-World Driving Record
+                    </h2>
+
+                    <div class="section-content">
+                        NASA&#x27;s Perseverance rover has set a new record for the farthest distance traveled across another world by any vehicle. Aided by an advanced self-driving system, Perseverance surpassed the previous 28.06-mile record held by the Opportunity rover. Perseverance accomplished this milestone in five and a half years, whereas Opportunity&#x27;s drive spanned nearly 15 years. Perseverance is currently examining some of the oldest rocks in the solar system as researchers search for indications of ancient Martian environments that may have once supported life.
+                    </div>
+
+                </div>
+
+            </section>
+            
+
+            <section
+                class="article-section"
+                id="section-2"
+            >
+
+                <div class="section-number">
+                    02
+                </div>
+
+                <div class="section-body">
+
+                    <div class="section-eyebrow">
+                        SECTION 02
+                    </div>
+
+                    <h2>
+                        Curiosity Investigates Unique Geological Formations
+                    </h2>
+
+                    <div class="section-content">
+                        Meanwhile, NASA&#x27;s Curiosity rover has revealed a new view of mysterious, wind-carved cliffs on Mars. According to scientists, these unusual geological formations may hold evidence of ancient volcanic activity. Curiosity is currently approaching the cliffs, and researchers hope to uncover the secrets behind their unique appearance in 2027.
+                    </div>
+
+                </div>
+
+            </section>
+            
+
+
+            
+    <section class="key-points">
+
+        <div class="section-eyebrow">
+            KEY POINTS
+        </div>
+
+        <h2>
+            What matters
+        </h2>
+
+        <ul>
+            
+            <li class="key-point">
+                <span class="key-point-mark"></span>
+                <span>
+                    Perseverance broke the all-time off-world driving record previously held by Opportunity (28.06 miles).
+                </span>
+            </li>
+            
+            <li class="key-point">
+                <span class="key-point-mark"></span>
+                <span>
+                    Perseverance achieved the record distance in five and a half years utilizing its advanced self-driving system.
+                </span>
+            </li>
+            
+            <li class="key-point">
+                <span class="key-point-mark"></span>
+                <span>
+                    Perseverance is actively exploring ancient rocks to research past Martian environments and potential past life.
+                </span>
+            </li>
+            
+            <li class="key-point">
+                <span class="key-point-mark"></span>
+                <span>
+                    Curiosity captured images of wind-carved cliffs that may contain evidence of ancient volcanic activity, with further scientific investigation targeted for 2027.
+                </span>
+            </li>
+            
+        </ul>
+
+    </section>
+    
+
+            <section class="verification-panel" aria-labelledby="verification-heading">
+                <h2 id="verification-heading">Check the article's claims</h2>
+                <p>Extract factual claims and compare them with the article's sources and additional retrieved evidence.</p>
+                <button class="verification-button" id="verify-claims-button" type="button">
+                    Extract and verify claims
+                </button>
+                <p class="verification-status" id="verification-status" role="status" aria-live="polite"></p>
+                <div id="verification-results" aria-live="polite"></div>
+            </section>
+
+
+            <!-- =============================================
+                 CONCLUSION
+                 ============================================= -->
+
+            <section class="conclusion">
+
+                <div class="conclusion-label">
+                    Conclusion
+                </div>
+
+                <h2>
+                    The takeaway
+                </h2>
+
+                <p>
+                    Through record-breaking driving distances and observations of unexplored geological structures, NASA&#x27;s Perseverance and Curiosity rovers continue to expand understanding of Mars&#x27;s ancient environment and geological history.
+                </p>
+
+            </section>
+
+
+        </article>
+
+
+
+        <!-- =================================================
+             SIDEBAR
+             ================================================= -->
+
+        <aside class="sidebar">
+
+
+            <div class="sidebar-heading">
+
+                <h2>
+                    Sources
+                </h2>
+
+                <span class="sidebar-count">
+                    2
+                </span>
+
+            </div>
+
+
+            <div class="sources-list">
+
+                
+    <article class="source-card">
+
+        <div class="source-card-top">
+
+            <span class="source-number">
+                01
+            </span>
+
+            <span class="source-label">
+                SOURCE
+            </span>
+
+        </div>
+
+        <h3 class="source-title">
+            NASA’s Perseverance Mars rover just shattered the all-time off-world driving record
+        </h3>
+
+        <div class="source-publisher">
+            All Top News -- ScienceDaily
+        </div>
+
+        <p class="source-preview">
+            NASA’s Perseverance Mars rover just shattered the all-time off-world driving record. NASA’s Perseverance rover has shattered a historic space exploration record, traveling farther across another world than any vehicle before it. Its advanced self-driving syste…
+        </p>
+
+        <div class="source-metrics">
+
+            <div class="source-metric">
+
+                <span class="metric-label">
+                    RELEVANCE
+                </span>
+
+                <strong>
+                    99.0%
+                </strong>
+
+            </div>
+
+            <div class="source-metric">
+
+                <span class="metric-label">
+                    RETRIEVAL
+                </span>
+
+                <strong>
+                    35.1%
+                </strong>
+
+            </div>
+
+        </div>
+
+        <a
+            class="source-link"
+            href="https://www.sciencedaily.com/releases/2026/10/261020084818.htm"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            Read source
+            <span aria-hidden="true">↗</span>
+        </a>
+
+    </article>
+    
+
+    <article class="source-card">
+
+        <div class="source-card-top">
+
+            <span class="source-number">
+                02
+            </span>
+
+            <span class="source-label">
+                SOURCE
+            </span>
+
+        </div>
+
+        <h3 class="source-title">
+            NASA’s Curiosity rover reveals a spectacular new view of Mars with a mystery on the horizon
+        </h3>
+
+        <div class="source-publisher">
+            All Top News -- ScienceDaily
+        </div>
+
+        <p class="source-preview">
+            NASA’s Curiosity rover reveals a spectacular new view of Mars with a mystery on the horizon. NASA’s Curiosity rover has revealed a spectacular new view of mysterious, wind-carved cliffs on Mars that may hold evidence of ancient volcanic activity. With the rove…
+        </p>
+
+        <div class="source-metrics">
+
+            <div class="source-metric">
+
+                <span class="metric-label">
+                    RELEVANCE
+                </span>
+
+                <strong>
+                    98.0%
+                </strong>
+
+            </div>
+
+            <div class="source-metric">
+
+                <span class="metric-label">
+                    RETRIEVAL
+                </span>
+
+                <strong>
+                    86.0%
+                </strong>
+
+            </div>
+
+        </div>
+
+        <a
+            class="source-link"
+            href="https://www.sciencedaily.com/releases/2026/10/261021231238.htm"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            Read source
+            <span aria-hidden="true">↗</span>
+        </a>
+
+    </article>
+    
+
+            </div>
+
+
+            <div class="evidence-notice">
+
+                <div class="evidence-notice-title">
+                    Evidence note
+                </div>
+
+                <p class="evidence-notice-text">
+                    This article is generated from the retrieved
+                    sources shown here. Relevance scores indicate
+                    retrieval relevance and should not be interpreted
+                    as factual certainty or source credibility.
+                </p>
+
+            </div>
+
+
+        </aside>
+
+
+    </main>
+
+
+
+    <!-- ==================================================
+         FOOTER
+         ================================================== -->
+
+    <footer class="footer">
+
+        <div class="footer-inner">
+
+
+            <div class="footer-brand">
+
+                <span class="footer-mark">
+                    TN
+                </span>
+
+                <span class="footer-name">
+                    TrustNews
+                </span>
+
+            </div>
+
+
+            <div class="footer-text">
+
+                Evidence-grounded news article<br>
+
+                Generated from retrieved sources
+
+            </div>
+
+
+        </div>
+
+    </footer>
+
+
+</div>
+
+<script type="application/json" id="verification-sources">[{"id": 55, "faiss_id": 54, "title": "NASA’s Perseverance Mars rover just shattered the all-time off-world driving record", "source": "All Top News -- ScienceDaily", "url": "https://www.sciencedaily.com/releases/2026/10/261020084818.htm", "published_at": null, "content": "NASA’s Perseverance Mars rover just shattered the all-time off-world driving record. NASA’s Perseverance rover has shattered a historic space exploration record, traveling farther across another world than any vehicle before it. Its advanced self-driving system helped it surpass Opportunity’s 28.06-mile record in just five and a half years, a feat that previously took nearly 15. Now, Perseverance is exploring some of the oldest rocks in the solar system, searching for clues about ancient Martian environments that may once have supported life.", "dense_score": 0.7026538848876953, "keyword_score": 0.104381554, "retrieval_score": 0.35132694244384766, "rerank_score": 0.990240216255188}, {"id": 44, "faiss_id": 43, "title": "NASA’s Curiosity rover reveals a spectacular new view of Mars with a mystery on the horizon", "source": "All Top News -- ScienceDaily", "url": "https://www.sciencedaily.com/releases/2026/10/261021231238.htm", "published_at": null, "content": "NASA’s Curiosity rover reveals a spectacular new view of Mars with a mystery on the horizon. NASA’s Curiosity rover has revealed a spectacular new view of mysterious, wind-carved cliffs on Mars that may hold evidence of ancient volcanic activity. With the rover approaching these unusual formations, scientists hope to uncover the secrets behind their strange appearance in 2027.", "dense_score": 0.7207725048065186, "keyword_score": 0.1490275, "retrieval_score": 0.8603862524032593, "rerank_score": 0.9804201126098633}]</script>
+
+<script>
+(() => {
+    const button = document.getElementById("verify-claims-button");
+    const status = document.getElementById("verification-status");
+    const resultsContainer = document.getElementById("verification-results");
+    const sourcesElement = document.getElementById("verification-sources");
+
+    if (!button || !status || !resultsContainer || !sourcesElement) {
+        return;
+    }
+
+    function renderVerification(data) {
+        resultsContainer.replaceChildren();
+
+        const summary = document.createElement("p");
+        summary.className = "verification-summary";
+        summary.textContent =
+            `${data.summary.total_claims} claims checked: ` +
+            `${data.summary.supported} supported, ` +
+            `${data.summary.refuted} refuted, ` +
+            `${data.summary.conflicting_evidence} conflicting, ` +
+            `${data.summary.not_enough_evidence} insufficient evidence.`;
+        resultsContainer.appendChild(summary);
+
+        for (const result of data.verification_results) {
+            const card = document.createElement("article");
+            card.className = "verification-claim";
+
+            const heading = document.createElement("h3");
+            heading.textContent = `${result.verdict.replaceAll("_", " ")} · ${result.claim_id}`;
+            card.appendChild(heading);
+
+            const claim = document.createElement("p");
+            claim.className = "verification-claim-text";
+            claim.textContent = result.claim_text;
+            card.appendChild(claim);
+
+            const explanation = document.createElement("p");
+            explanation.textContent = result.explanation;
+            card.appendChild(explanation);
+
+            if (result.source_references.length) {
+                const sources = document.createElement("ul");
+                sources.className = "verification-source-list";
+
+                for (const source of result.source_references) {
+                    const item = document.createElement("li");
+                    const link = document.createElement("a");
+                    link.textContent = source.title || source.source || source.url;
+
+                    if (/^https?:\/\//i.test(source.url)) {
+                        link.href = source.url;
+                        link.target = "_blank";
+                        link.rel = "noopener noreferrer";
+                    } else {
+                        link.removeAttribute("href");
+                    }
+
+                    item.appendChild(link);
+                    sources.appendChild(item);
+                }
+
+                card.appendChild(sources);
+            }
+
+            resultsContainer.appendChild(card);
+        }
+    }
+
+    button.addEventListener("click", async () => {
+        button.disabled = true;
+        status.textContent = "Extracting and checking article claims…";
+        resultsContainer.replaceChildren();
+
+        try {
+            const articleText = [
+                document.querySelector(".hero-title")?.innerText || "",
+                Array.from(document.querySelectorAll(
+                    ".article-intro-text, .article-section, .key-points, .conclusion"
+                )).map((element) => element.innerText).join("\n")
+            ].join("\n\n").trim();
+            const sources = JSON.parse(sourcesElement.textContent || "[]");
+            const response = await fetch("/verify-article", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    article_text: articleText,
+                    sources,
+                    top_k: 10,
+                    max_retries: 2
+                })
+            });
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.detail || `Request failed (${response.status})`);
+            }
+
+            renderVerification(data);
+            status.textContent = data.summary.total_claims
+                ? "Claim verification complete."
+                : "No factual claims were extracted from this article.";
+        } catch (error) {
+            status.textContent = error.message || "Unable to verify article claims.";
+        } finally {
+            button.disabled = false;
+        }
+    });
+})();
+</script>
+
+
+</body>
+
+</html>

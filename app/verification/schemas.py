@@ -31,6 +31,15 @@ class EvidenceReference(BaseModel):
     rerank_score: Optional[float] = None
 
 
+class VerificationStep(BaseModel):
+    sequence: int
+    stage: str
+    status: str
+    summary: str
+    input: dict[str, Any] = Field(default_factory=dict)
+    output: dict[str, Any] = Field(default_factory=dict)
+
+
 class ClaimVerificationResult(BaseModel):
     claim_id: str
     claim_text: str
@@ -42,6 +51,7 @@ class ClaimVerificationResult(BaseModel):
     source_urls: List[str] = Field(default_factory=list)
     source_references: List[EvidenceReference] = Field(default_factory=list)
     evaluated_evidence: List[EvidenceReference] = Field(default_factory=list)
+    steps: List[VerificationStep] = Field(default_factory=list)
     retrieval_attempts: int = 0
     further_retrieval_recommended: bool = False
 

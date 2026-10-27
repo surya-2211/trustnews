@@ -35,7 +35,10 @@ treated as confidence.
 The same workflow is available through `POST /verify-article`. Its JSON body
 accepts `article_text`, optional `article_id`, a `sources` array, `top_k`, and
 `max_retries`. The response includes extracted claims, verdicts, source
-provenance, retrieval attempts, and a per-article summary. Confidence is
+provenance, retrieval attempts, and a per-article summary. Each claim result
+also includes an ordered `steps` array that records inquiry generation,
+initial evidence, retrieval, evidence ranking, judge decisions, and retry
+outcomes, with the inputs and outputs for each executed step. Confidence is
 currently returned as `null` because the LLM score is not calibrated.
 
 Set `GEMINI_API_KEY` and, if needed, `GEMINI_MODEL` in `.env`. The model

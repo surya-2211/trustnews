@@ -13,6 +13,7 @@ from app.verification.schemas import (
     EvidenceReference,
     ExtractedClaim,
     VerificationSummary,
+    VerificationStep,
 )
 
 
@@ -112,10 +113,36 @@ class ClaimVerificationOrchestrator:
         inquiry = self.inquiry_agent(claim_text)
         verification_question = inquiry["verification_question"]
         search_queries = inquiry["search_queries"]
+        steps: list[VerificationStep] = []
+        self._record_step(
+            steps,
+            stage="inquiry_generation",
+            status="completed",
+            summary="Generated a verification question and search queries.",
+            input={"claim_text": claim_text},
+            output={
+                "method": "local claim-based inquiry generation",
+                "verification_question": verification_question,
+                "search_queries": search_queries,
+            },
+        )
+
         evidence = self._deduplicate(initial_evidence)
         queries_used = set()
         retrieval_attempts = 1 if evidence else 0
         retrieval_retries = 0
+
+        self._record_step(
+            steps,
+            stage="initial_evidence",
+            status="completed",
+            summary="Prepared article-provided evidence for this claim.",
+            input={"provided_source_count": len(initial_evidence)},
+            output={
+                "unique_usable_evidence_count": len(evidence),
+                "evidence": self._trace_evidence(evidence),
+            },
+        )
 
         if not evidence:
             query = self._next_query(
@@ -123,10 +150,27 @@ class ClaimVerificationOrchestrator:
                 queries_used,
             )
             if query:
-                evidence, _ = self._retrieve(
-                    db,
-                    query,
-                    evidence,
+                previous_count = len(evidence)
+                retrieved = self.retrieval_agent.retrieve(db, query)
+                evidence = self._deduplicate([*evidence, *retrieved])
+                self._record_step(
+                    steps,
+                    stage="retrieval",
+                    status="completed",
+                    summary="Retrieved additional evidence for this claim.",
+                    input={
+                        "query": query,
+                        "top_k": self.top_k,
+                        "existing_evidence_count": previous_count,
+                    },
+                    output={
+                        "retrieved_candidate_count": len(retrieved),
+                        "new_unique_evidence_count": (
+                            len(evidence) - previous_count
+                        ),
+                        "total_unique_evidence_count": len(evidence),
+                        "evidence": self._trace_evidence(evidence),
+                    },
                 )
                 retrieval_attempts += 1
 
@@ -134,6 +178,24 @@ class ClaimVerificationOrchestrator:
             verification_question,
             evidence,
             self.top_k,
+        )
+        self._record_step(
+            steps,
+            stage="evidence_extraction",
+            status="completed",
+            summary="Ranked candidate evidence for relevance to the claim.",
+            input={
+                "verification_question": verification_question,
+                "candidate_evidence_count": len(evidence),
+                "top_k": self.top_k,
+            },
+            output={
+                "selected_evidence_count": len(extracted),
+                "selected_evidence": self._trace_evidence(
+                    extracted,
+                    include_content=True,
+                ),
+            },
         )
 
         if not extracted:
@@ -144,6 +206,17 @@ class ClaimVerificationOrchestrator:
                 "contradicting_evidence_indexes": [],
                 "further_retrieval_recommended": True,
             }
+            self._record_step(
+                steps,
+                stage="judge",
+                status="skipped",
+                summary="Judge skipped because no evidence passages were selected.",
+                input={"selected_evidence_count": 0},
+                output={
+                    "verdict": "NOT_ENOUGH_EVIDENCE",
+                    "reason": "No relevant evidence passages were available.",
+                },
+            )
         else:
             decision = self.judge_agent(
                 {
@@ -153,6 +226,18 @@ class ClaimVerificationOrchestrator:
                 extracted,
             )
             self._validate_decision(decision, len(extracted))
+            self._record_step(
+                steps,
+                stage="judge",
+                status="completed",
+                summary="Compared the claim with the selected evidence.",
+                input={
+                    "claim_text": claim_text,
+                    "evidence_count": len(extracted),
+                    "evidence": self._trace_evidence(extracted),
+                },
+                output=self._trace_decision(decision),
+            )
 
         while (
             decision["verdict"] in UNCERTAIN_VERDICTS
@@ -161,16 +246,60 @@ class ClaimVerificationOrchestrator:
         ):
             query = self._next_query(search_queries, queries_used)
             if not query:
+                self._record_step(
+                    steps,
+                    stage="retry_decision",
+                    status="stopped",
+                    summary="No unused inquiry search query remains.",
+                    input={
+                        "queries_tried": len(queries_used),
+                        "retry_limit": self.max_retries,
+                    },
+                    output={"final_verdict": decision["verdict"]},
+                )
                 break
 
-            updated_evidence, added = self._retrieve(
-                db,
-                query,
-                evidence,
-            )
+            previous_count = len(evidence)
+            retrieved = self.retrieval_agent.retrieve(db, query)
+            updated_evidence = self._deduplicate([*evidence, *retrieved])
+            added = len(updated_evidence) > previous_count
             retrieval_attempts += 1
             retrieval_retries += 1
+            self._record_step(
+                steps,
+                stage="retrieval",
+                status="completed",
+                summary=(
+                    f"Retry {retrieval_retries}: retrieved more evidence "
+                    "after an uncertain judge result."
+                ),
+                input={
+                    "query": query,
+                    "top_k": self.top_k,
+                    "existing_evidence_count": previous_count,
+                    "retry_number": retrieval_retries,
+                },
+                output={
+                    "retrieved_candidate_count": len(retrieved),
+                    "new_unique_evidence_count": (
+                        len(updated_evidence) - previous_count
+                    ),
+                    "total_unique_evidence_count": len(updated_evidence),
+                    "evidence": self._trace_evidence(updated_evidence),
+                },
+            )
             if not added:
+                self._record_step(
+                    steps,
+                    stage="retry_decision",
+                    status="completed",
+                    summary=(
+                        "No new evidence was found, so this retry did not "
+                        "trigger another ranking or judge step."
+                    ),
+                    input={"retry_number": retrieval_retries},
+                    output={"reason": "Retrieved evidence was a duplicate."},
+                )
                 continue
 
             evidence = updated_evidence
@@ -179,6 +308,29 @@ class ClaimVerificationOrchestrator:
                 evidence,
                 self.top_k,
             )
+            self._record_step(
+                steps,
+                stage="evidence_extraction",
+                status="completed",
+                summary=(
+                    f"Reranked evidence after retrieval retry "
+                    f"{retrieval_retries}."
+                ),
+                input={
+                    "verification_question": verification_question,
+                    "candidate_evidence_count": len(evidence),
+                    "top_k": self.top_k,
+                    "retry_number": retrieval_retries,
+                },
+                output={
+                    "selected_evidence_count": len(extracted),
+                    "selected_evidence": self._trace_evidence(
+                        extracted,
+                        include_content=True,
+                    ),
+                },
+            )
+
             if not extracted:
                 decision = {
                     "verdict": "NOT_ENOUGH_EVIDENCE",
@@ -189,6 +341,22 @@ class ClaimVerificationOrchestrator:
                     "contradicting_evidence_indexes": [],
                     "further_retrieval_recommended": True,
                 }
+                self._record_step(
+                    steps,
+                    stage="judge",
+                    status="skipped",
+                    summary=(
+                        "Judge skipped because no evidence passages were "
+                        "selected after retrieval."
+                    ),
+                    input={"selected_evidence_count": 0},
+                    output={
+                        "verdict": "NOT_ENOUGH_EVIDENCE",
+                        "reason": (
+                            "No relevant evidence passages were available."
+                        ),
+                    },
+                )
             else:
                 decision = self.judge_agent(
                     {
@@ -198,6 +366,39 @@ class ClaimVerificationOrchestrator:
                     extracted,
                 )
                 self._validate_decision(decision, len(extracted))
+                self._record_step(
+                    steps,
+                    stage="judge",
+                    status="completed",
+                    summary=(
+                        f"Reassessed the claim after retrieval retry "
+                        f"{retrieval_retries}."
+                    ),
+                    input={
+                        "claim_text": claim_text,
+                        "evidence_count": len(extracted),
+                        "evidence": self._trace_evidence(extracted),
+                        "retry_number": retrieval_retries,
+                    },
+                    output=self._trace_decision(decision),
+                )
+
+        if (
+            decision["verdict"] in UNCERTAIN_VERDICTS
+            and decision["further_retrieval_recommended"]
+            and retrieval_retries >= self.max_retries
+        ):
+            self._record_step(
+                steps,
+                stage="retry_decision",
+                status="stopped",
+                summary=(
+                    "Stopped because the configured retrieval retry limit "
+                    "was reached."
+                ),
+                input={"retry_limit": self.max_retries},
+                output={"final_verdict": decision["verdict"]},
+            )
 
         return self._build_result(
             claim_id,
@@ -207,17 +408,61 @@ class ClaimVerificationOrchestrator:
             retrieval_attempts,
             decision["verdict"] in UNCERTAIN_VERDICTS
             and decision["further_retrieval_recommended"],
+            steps,
         )
 
-    def _retrieve(
-        self,
-        db: Any,
-        query: str,
-        existing: list[dict[str, Any]],
-    ) -> tuple[list[dict[str, Any]], bool]:
-        results = self.retrieval_agent.retrieve(db, query)
-        merged = self._deduplicate([*existing, *results])
-        return merged, len(merged) > len(existing)
+    @staticmethod
+    def _record_step(
+        steps: list[VerificationStep],
+        *,
+        stage: str,
+        status: str,
+        summary: str,
+        input: dict[str, Any],
+        output: dict[str, Any],
+    ) -> None:
+        steps.append(
+            VerificationStep(
+                sequence=len(steps) + 1,
+                stage=stage,
+                status=status,
+                summary=summary,
+                input=input,
+                output=output,
+            )
+        )
+
+    @staticmethod
+    def _trace_evidence(
+        evidence: list[dict[str, Any]],
+        *,
+        include_content: bool = False,
+    ) -> list[dict[str, Any]]:
+        references = []
+        for index, item in enumerate(evidence):
+            reference = ClaimVerificationOrchestrator._reference(item, index)
+            references.append(
+                reference.model_dump(
+                    exclude=set() if include_content else {"content"},
+                )
+            )
+        return references
+
+    @staticmethod
+    def _trace_decision(decision: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "verdict": decision["verdict"],
+            "explanation": decision["explanation"],
+            "supporting_evidence_indexes": (
+                decision["supporting_evidence_indexes"]
+            ),
+            "contradicting_evidence_indexes": (
+                decision["contradicting_evidence_indexes"]
+            ),
+            "further_retrieval_recommended": (
+                decision["further_retrieval_recommended"]
+            ),
+        }
 
     @staticmethod
     def _deduplicate(
@@ -323,6 +568,7 @@ class ClaimVerificationOrchestrator:
         evidence: list[dict[str, Any]],
         attempts: int,
         further_retrieval: bool,
+        steps: list[VerificationStep],
     ) -> ClaimVerificationResult:
         supporting_indexes = decision["supporting_evidence_indexes"]
         contradicting_indexes = decision["contradicting_evidence_indexes"]
@@ -363,6 +609,7 @@ class ClaimVerificationOrchestrator:
                 ClaimVerificationOrchestrator._reference(item, index)
                 for index, item in enumerate(evidence)
             ],
+            steps=steps,
             retrieval_attempts=attempts,
             further_retrieval_recommended=further_retrieval,
         )

@@ -157,6 +157,32 @@ class ClaimVerificationTests(unittest.TestCase):
             source["content"],
         )
         self.assertEqual(verification.confidence, None)
+        self.assertEqual(
+            [step.stage for step in verification.steps],
+            [
+                "inquiry_generation",
+                "initial_evidence",
+                "evidence_extraction",
+                "judge",
+            ],
+        )
+        self.assertEqual(
+            verification.steps[2].output["selected_evidence"][0]["content"],
+            source["content"],
+        )
+        self.assertEqual(
+            verification.steps[3].output["supporting_evidence_indexes"],
+            [0],
+        )
+        response_json = result.model_dump(mode="json")
+        self.assertEqual(
+            response_json["verification_results"][0]["steps"][0]["stage"],
+            "inquiry_generation",
+        )
+        self.assertEqual(
+            response_json["verification_results"][0]["steps"][-1]["stage"],
+            "judge",
+        )
 
     def test_refuted_verdict_records_contradicting_source(self):
         result, _, _ = self.verify_one(
@@ -200,6 +226,15 @@ class ClaimVerificationTests(unittest.TestCase):
         self.assertEqual(verification.retrieval_attempts, 2)
         self.assertEqual(len(retrieval.queries), 2)
         self.assertEqual(judge_calls, [])
+        self.assertIn(
+            "retrieval",
+            [step.stage for step in verification.steps],
+        )
+        judge_steps = [
+            step for step in verification.steps if step.stage == "judge"
+        ]
+        self.assertEqual(len(judge_steps), 1)
+        self.assertEqual(judge_steps[0].status, "skipped")
 
     def test_retry_retrieves_new_evidence_and_rejudges(self):
         first = evidence(1, "The topic is under review.")
@@ -223,6 +258,19 @@ class ClaimVerificationTests(unittest.TestCase):
         self.assertEqual(verification.retrieval_attempts, 2)
         self.assertEqual(len(judge_calls), 2)
         self.assertEqual(verification.supporting_evidence_ids, [2])
+        stages = [step.stage for step in verification.steps]
+        self.assertEqual(stages.count("retrieval"), 1)
+        self.assertEqual(stages.count("evidence_extraction"), 2)
+        self.assertEqual(stages.count("judge"), 2)
+        retry_step = next(
+            step
+            for step in verification.steps
+            if step.stage == "retrieval"
+        )
+        self.assertEqual(
+            retry_step.output["new_unique_evidence_count"],
+            1,
+        )
 
     def test_duplicate_retrieval_is_deduplicated_without_rejudging(self):
         original = evidence(8)
